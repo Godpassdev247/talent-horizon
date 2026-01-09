@@ -257,14 +257,14 @@
     }
     
     .message-bubble.sent .message-content {
-        background: #667eea;
+        background: #3b82f6;
         color: white;
         border-bottom-right-radius: 4px;
     }
     
     .message-bubble.received .message-content {
-        background: white;
-        color: #111827;
+        background: #334155;
+        color: white;
         border-bottom-left-radius: 4px;
         box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
@@ -279,6 +279,10 @@
     }
     
     .message-bubble.sent .message-time {
+        color: rgba(255,255,255,0.7);
+    }
+    
+    .message-bubble.received .message-time {
         color: rgba(255,255,255,0.7);
     }
     
@@ -521,12 +525,6 @@
                 </div>
             </div>
             
-            <button class="new-conversation-btn" onclick="showNewConversationModal()">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                New Conversation
-            </button>
             
             <div class="conversations-list" id="conversationsList">
                 <div class="loading-state">
