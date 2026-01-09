@@ -1,0 +1,381 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}{{ company.name }} - Company Details{% endblock %}
+{% block page_title %}{{ company.name }}{% endblock %}
+{% block page_subtitle %}Company Details and Management{% endblock %}
+
+{% block content %}
+<!-- Quick Actions Bar -->
+<div class="flex flex-wrap gap-3 mb-6">
+    <a href="/admin-panel/companies/{{ company.id }}/edit/" class="inline-flex items-center gap-2 bg-blue-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-blue-700 transition-all text-base">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+        Edit Company
+    </a>
+    {% if not company.is_verified %}
+    <form method="POST" action="/admin-panel/companies/{{ company.id }}/verify/" class="inline">
+        {% csrf_token %}
+        <button type="submit" class="inline-flex items-center gap-2 bg-green-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-green-700 transition-all text-base">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            Verify Company
+        </button>
+    </form>
+    {% endif %}
+    <form method="POST" action="/admin-panel/companies/{{ company.id }}/feature/" class="inline">
+        {% csrf_token %}
+        <button type="submit" class="inline-flex items-center gap-2 {% if company.is_featured %}bg-slate-600{% else %}bg-indigo-600{% endif %} text-white font-semibold py-3 px-6 rounded-xl hover:bg-opacity-90 transition-all text-base">
+            <svg class="w-5 h-5" fill="{% if company.is_featured %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
+            {% if company.is_featured %}Remove Featured{% else %}Mark Featured{% endif %}
+        </button>
+    </form>
+    <button type="button" onclick="showDeleteModal()" class="inline-flex items-center gap-2 bg-red-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-red-700 transition-all text-base">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        Delete Company
+    </button>
+    <a href="/admin-panel/companies/" class="inline-flex items-center gap-2 bg-slate-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-slate-700 transition-all text-base">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+        Back to List
+    </a>
+</div>
+
+<!-- Stats Cards -->
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+    <div class="bg-white rounded-xl border border-slate-100 p-4 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-slate-500 text-sm font-medium uppercase">Status</p>
+                <p class="text-lg font-bold {% if company.is_verified %}text-blue-600{% else %}text-yellow-600{% endif %} mt-1">
+                    {% if company.is_verified %}Verified{% else %}Unverified{% endif %}
+                </p>
+            </div>
+            <div class="w-10 h-10 {% if company.is_verified %}bg-blue-50{% else %}bg-yellow-50{% endif %} rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 {% if company.is_verified %}text-blue-600{% else %}text-yellow-600{% endif %}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-100 p-4 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-slate-500 text-sm font-medium uppercase">Total Jobs</p>
+                <p class="text-3xl font-bold text-navy-800 mt-1">{{ stats.total_jobs }}</p>
+            </div>
+            <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-100 p-4 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-slate-500 text-sm font-medium uppercase">Published</p>
+                <p class="text-3xl font-bold text-green-600 mt-1">{{ stats.published_jobs }}</p>
+            </div>
+            <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-100 p-4 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-slate-500 text-sm font-medium uppercase">Draft</p>
+                <p class="text-3xl font-bold text-yellow-600 mt-1">{{ stats.draft_jobs }}</p>
+            </div>
+            <div class="w-10 h-10 bg-yellow-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-100 p-4 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-slate-500 text-sm font-medium uppercase">Applications</p>
+                <p class="text-3xl font-bold text-purple-600 mt-1">{{ stats.total_applications }}</p>
+            </div>
+            <div class="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Company Details - Left Column (2/3) -->
+    <div class="lg:col-span-2 space-y-6">
+        <!-- Company Info -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+            <div class="flex items-start gap-4 mb-6">
+                {% if company.logo %}
+                <img src="{{ company.logo.url }}" alt="{{ company.name }}" class="w-24 h-24 rounded-xl object-cover">
+                {% else %}
+                <div class="w-24 h-24 bg-gradient-to-br from-navy-800 to-navy-900 rounded-xl flex items-center justify-center">
+                    <span class="text-white font-bold text-3xl">{{ company.name.0|upper }}</span>
+                </div>
+                {% endif %}
+                <div class="flex-1">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 class="text-2xl font-bold text-navy-800">{{ company.name }}</h2>
+                            <p class="text-slate-600 text-base mt-1">{{ company.industry|default:"Industry not specified" }}</p>
+                        </div>
+                        <div class="flex gap-2">
+                            {% if company.is_verified %}
+                            <span class="px-3 py-1.5 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                Verified
+                            </span>
+                            {% endif %}
+                            {% if company.is_featured %}
+                            <span class="px-3 py-1.5 bg-indigo-100 text-indigo-700 rounded-lg text-sm font-medium">Featured</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            {% if company.description %}
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold text-navy-800 mb-2">About</h3>
+                <p class="text-slate-600 text-base leading-relaxed">{{ company.description }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Details Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                {% if company.headquarters %}
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500">Location</p>
+                        <p class="text-base font-medium text-navy-800">{{ company.headquarters }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if company.company_size %}
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500">Company Size</p>
+                        <p class="text-base font-medium text-navy-800">{{ company.get_company_size_display }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if company.founded_year %}
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500">Founded</p>
+                        <p class="text-base font-medium text-navy-800">{{ company.founded_year }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if company.website %}
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-sm text-slate-500">Website</p>
+                        <a href="{{ company.website }}" target="_blank" class="text-base font-medium text-blue-600 hover:underline truncate block">{{ company.website }}</a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Social Links -->
+            {% if company.linkedin or company.twitter or company.facebook %}
+            <div class="border-t border-slate-100 pt-4">
+                <h3 class="text-sm font-semibold text-slate-500 uppercase mb-3">Social Media</h3>
+                <div class="flex gap-3">
+                    {% if company.linkedin %}
+                    <a href="{{ company.linkedin }}" target="_blank" class="p-3 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                        <svg class="w-5 h-5 text-slate-700" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                    </a>
+                    {% endif %}
+                    {% if company.twitter %}
+                    <a href="{{ company.twitter }}" target="_blank" class="p-3 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                        <svg class="w-5 h-5 text-slate-700" fill="currentColor" viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+                    </a>
+                    {% endif %}
+                    {% if company.facebook %}
+                    <a href="{{ company.facebook }}" target="_blank" class="p-3 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">
+                        <svg class="w-5 h-5 text-slate-700" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Jobs List -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div class="p-6 border-b border-slate-100">
+                <h2 class="text-xl font-bold text-navy-800">All Jobs ({{ jobs.count }})</h2>
+            </div>
+            <div class="divide-y divide-slate-100">
+                {% for job in jobs %}
+                <div class="p-6 hover:bg-slate-50 transition-colors">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex-1 min-w-0">
+                            <a href="/admin-panel/jobs/{{ job.id }}/" class="text-lg font-semibold text-navy-800 hover:text-accent transition-colors">{{ job.title }}</a>
+                            <div class="flex flex-wrap items-center gap-3 mt-2">
+                                <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium">{{ job.get_job_type_display }}</span>
+                                <span class="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium">{{ job.get_experience_level_display }}</span>
+                                <span class="px-3 py-1.5 rounded-full text-sm font-medium {% if job.status == 'published' %}bg-green-100 text-green-700{% elif job.status == 'draft' %}bg-yellow-100 text-yellow-700{% elif job.status == 'closed' %}bg-red-100 text-red-700{% else %}bg-gray-100 text-gray-700{% endif %}">
+                                    {{ job.get_status_display }}
+                                </span>
+                                {% if job.is_featured %}
+                                <span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded text-xs font-medium">Featured</span>
+                                {% endif %}
+                            </div>
+                            <div class="flex items-center gap-4 mt-2 text-sm text-slate-600">
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                    {{ job.applications_count }} applications
+                                </span>
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    Posted {{ job.created_at|date:"M d, Y" }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <a href="/admin-panel/jobs/{{ job.id }}/" class="p-2 hover:bg-blue-50 rounded-lg transition-colors" title="View">
+                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            </a>
+                            <a href="/admin-panel/jobs/{{ job.id }}/edit/" class="p-2 hover:bg-slate-100 rounded-lg transition-colors" title="Edit">
+                                <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-12 text-center">
+                    <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h3 class="font-semibold text-navy-800 mb-1">No jobs posted yet</h3>
+                    <p class="text-slate-500 text-sm">This company hasn't posted any job listings.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar - Right Column (1/3) -->
+    <div class="space-y-6">
+        <!-- Benefits -->
+        {% if company.benefits %}
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-navy-800 mb-4">Benefits</h3>
+            <div class="space-y-2">
+                {% for benefit in company.benefits %}
+                <div class="flex items-start gap-2">
+                    <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    <span class="text-slate-700 text-base">{{ benefit }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Metadata -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-navy-800 mb-4">Metadata</h3>
+            <div class="space-y-3 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Created</span>
+                    <span class="text-navy-800 font-medium">{{ company.created_at|date:"M d, Y" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Last Updated</span>
+                    <span class="text-navy-800 font-medium">{{ company.updated_at|date:"M d, Y" }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Company ID</span>
+                    <span class="text-navy-800 font-mono">{{ company.id }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500">Slug</span>
+                    <span class="text-navy-800 font-mono text-xs">{{ company.slug }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all">
+        <div class="flex items-center gap-4 mb-4">
+            <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <div>
+                <h3 class="text-xl font-bold text-navy-800">Delete Company</h3>
+                <p class="text-sm text-slate-500">This action cannot be undone</p>
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            <p class="text-base text-slate-700 mb-2">Are you sure you want to delete <span class="font-semibold text-navy-800">{{ company.name }}</span>?</p>
+            <div class="bg-red-50 border border-red-200 rounded-lg p-3 mt-3">
+                <p class="text-sm text-red-800 flex items-start gap-2">
+                    <svg class="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                    <span><strong>Warning:</strong> This will permanently delete all associated jobs and applications.</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="flex gap-3">
+            <button type="button" onclick="hideDeleteModal()" class="flex-1 bg-slate-100 text-slate-700 font-semibold py-3 px-6 rounded-xl hover:bg-slate-200 transition-all text-base">
+                Cancel
+            </button>
+            <form method="POST" action="/admin-panel/companies/{{ company.id }}/delete/" class="flex-1">
+                {% csrf_token %}
+                <button type="submit" class="w-full bg-red-600 text-white font-semibold py-3 px-6 rounded-xl hover:bg-red-700 transition-all text-base">
+                    Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('hidden');
+}
+
+function hideDeleteModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+}
+
+// Close modal when clicking outside
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideDeleteModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        hideDeleteModal();
+    }
+});
+</script>
+{% endblock %}

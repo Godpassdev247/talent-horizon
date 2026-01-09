@@ -1,0 +1,29 @@
+Custom Admin Panel - Talent Horizon
+=====================================
+
+URL: https://8000-iujkel9smpbtl03uufvqj-e3a9affb.us2.manus.computer/admin-panel/
+
+Login Credentials:
+- Email: admin@talenthorizon.com
+- Password: Admin123
+
+Features Implemented:
+---------------------
+1. Dashboard - Overview with stats (Jobs, Applications, Users, Companies, Loans, Withdrawals)
+2. Jobs Management - List, search, filter, publish/close actions
+3. Companies Management - Grid view with verification status
+4. Job Applications - Track candidate applications
+5. Users Management - View/activate/deactivate users
+6. Loan Applications - Financial services management
+7. Withdrawals - Process withdrawal requests
+8. Credit Card Debt - View debt clearing applications
+9. Tax Refunds - View tax refund applications
+
+Design:
+- Executive Navy theme matching the frontend
+- Responsive sidebar navigation
+- Modern card-based layouts
+- Status badges with color coding
+- Action buttons for quick management
+
+All pages working and tested successfully.

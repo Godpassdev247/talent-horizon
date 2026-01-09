@@ -1,0 +1,40 @@
+Django Admin Panel - Successfully Configured
+
+Admin URL: https://8000-iujkel9smpbtl03uufvqj-e3a9affb.us2.manus.computer/admin/
+
+Credentials:
+- Email: admin@talenthorizon.com
+- Password: Admin123
+
+Available Admin Sections:
+
+1. AUTHENTICATION AND AUTHORIZATION
+   - Groups
+
+2. CORE (User Management)
+   - Certifications
+   - Education
+   - Experiences
+   - Skills
+   - Users
+
+3. FINANCIAL (Financial Services)
+   - Credit Card Debt Applications
+   - Loan Applications
+   - Tax Refund Applications
+   - Withdrawals
+
+4. JOBS (Recruitment)
+   - Applications
+   - Companies
+   - Jobs
+   - Messages
+   - Resumes
+   - Saved Jobs
+
+5. TOKEN BLACKLIST (JWT Management)
+   - Blacklisted Tokens
+   - Outstanding Tokens
+
+All models are registered with full CRUD operations (Add/Change).
+The admin panel uses Django Jazzmin theme with green color scheme.

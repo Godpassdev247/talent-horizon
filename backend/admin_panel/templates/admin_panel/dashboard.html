@@ -1,0 +1,244 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Overview of your platform{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+    <!-- Total Jobs -->
+    <div class="stat-card bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-slate-100 rounded-lg sm:rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+            </div>
+            <span class="text-green-500 text-xs sm:text-sm font-medium flex items-center gap-1">
+                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                12%
+            </span>
+        </div>
+        <h3 class="text-2xl sm:text-3xl font-bold text-navy-800 mb-1">{{ stats.total_jobs }}</h3>
+        <p class="text-slate-500 text-xs sm:text-sm">Total Jobs</p>
+    </div>
+
+    <!-- Total Applications -->
+    <div class="stat-card bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-slate-100 rounded-lg sm:rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            </div>
+            <span class="text-green-500 text-xs sm:text-sm font-medium flex items-center gap-1">
+                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                8%
+            </span>
+        </div>
+        <h3 class="text-2xl sm:text-3xl font-bold text-navy-800 mb-1">{{ stats.total_applications }}</h3>
+        <p class="text-slate-500 text-xs sm:text-sm">Total Applications</p>
+    </div>
+
+    <!-- Total Users -->
+    <div class="stat-card bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-slate-100 rounded-lg sm:rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            </div>
+            <span class="text-green-500 text-xs sm:text-sm font-medium flex items-center gap-1">
+                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                24%
+            </span>
+        </div>
+        <h3 class="text-2xl sm:text-3xl font-bold text-navy-800 mb-1">{{ stats.total_users }}</h3>
+        <p class="text-slate-500 text-xs sm:text-sm">Total Users</p>
+    </div>
+
+    <!-- Total Companies -->
+    <div class="stat-card bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-slate-100 rounded-lg sm:rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+            </div>
+            <span class="text-green-500 text-xs sm:text-sm font-medium flex items-center gap-1">
+                <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                5%
+            </span>
+        </div>
+        <h3 class="text-2xl sm:text-3xl font-bold text-navy-800 mb-1">{{ stats.total_companies }}</h3>
+        <p class="text-slate-500 text-xs sm:text-sm">Total Companies</p>
+    </div>
+</div>
+
+<!-- Financial Stats -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8">
+    <!-- Pending Loans -->
+    <div class="stat-card bg-gradient-to-br from-navy-800 to-navy-900 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-white">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+        </div>
+        <h3 class="text-2xl sm:text-3xl font-bold mb-1">{{ stats.pending_loans }}</h3>
+        <p class="text-white/70 text-xs sm:text-sm">Pending Loan Applications</p>
+    </div>
+
+    <!-- Pending Withdrawals -->
+    <div class="stat-card bg-gradient-to-br from-accent to-accent-dark rounded-xl sm:rounded-2xl p-4 sm:p-6 text-white">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            </div>
+        </div>
+        <h3 class="text-2xl sm:text-3xl font-bold mb-1">{{ stats.pending_withdrawals }}</h3>
+        <p class="text-white/70 text-xs sm:text-sm">Pending Withdrawals</p>
+    </div>
+
+    <!-- Total Loan Amount -->
+    <div class="stat-card bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl sm:rounded-2xl p-4 sm:p-6 text-white">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+        </div>
+        <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-1">${{ stats.total_loan_amount|floatformat:0|default:"0" }}</h3>
+        <p class="text-white/70 text-xs sm:text-sm">Total Approved Loans</p>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+    <!-- Recent Jobs -->
+    <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="font-semibold text-navy-800 text-sm sm:text-base">Recent Jobs</h2>
+            <a href="/admin-panel/jobs/" class="text-accent text-xs sm:text-sm font-medium hover:underline">View All</a>
+        </div>
+        <div class="divide-y divide-slate-100">
+            {% for job in recent_jobs %}
+            <div class="px-4 sm:px-6 py-3 sm:py-4 table-row flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="text-navy-800 font-bold text-xs sm:text-sm">{{ job.company.name|slice:":2"|upper }}</span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="font-medium text-navy-800 text-sm sm:text-base truncate">{{ job.title }}</h3>
+                        <p class="text-slate-500 text-xs sm:text-sm truncate">{{ job.company.name }}</p>
+                    </div>
+                </div>
+                <span class="px-2 sm:px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 {% if job.status == 'published' %}bg-blue-100 text-blue-700{% elif job.status == 'draft' %}bg-slate-100 text-slate-600{% else %}bg-red-100 text-red-700{% endif %}">
+                    {{ job.status|title }}
+                </span>
+            </div>
+            {% empty %}
+            <div class="px-4 sm:px-6 py-6 sm:py-8 text-center text-slate-500 text-sm">
+                No jobs yet
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Applications -->
+    <div class="bg-white rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="font-semibold text-navy-800 text-sm sm:text-base">Recent Applications</h2>
+            <a href="/admin-panel/applications/" class="text-accent text-xs sm:text-sm font-medium hover:underline">View All</a>
+        </div>
+        <div class="divide-y divide-slate-100">
+            {% for app in recent_applications %}
+            <div class="px-4 sm:px-6 py-3 sm:py-4 table-row flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-accent to-accent-dark rounded-lg flex items-center justify-center flex-shrink-0">
+                        <span class="text-white font-bold text-xs sm:text-sm">{{ app.applicant.first_name|slice:":1"|upper }}{{ app.applicant.last_name|slice:":1"|upper }}</span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="font-medium text-navy-800 text-sm sm:text-base truncate">{{ app.applicant.get_full_name }}</h3>
+                        <p class="text-slate-500 text-xs sm:text-sm truncate">{{ app.job.title }}</p>
+                    </div>
+                </div>
+                <span class="px-2 sm:px-3 py-1 rounded-full text-xs font-medium flex-shrink-0 {% if app.status == 'submitted' %}bg-blue-100 text-blue-700{% elif app.status == 'interview' %}bg-green-100 text-green-700{% elif app.status == 'rejected' %}bg-red-100 text-red-700{% else %}bg-slate-100 text-slate-600{% endif %}">
+                    {{ app.status|title }}
+                </span>
+            </div>
+            {% empty %}
+            <div class="px-4 sm:px-6 py-6 sm:py-8 text-center text-slate-500 text-sm">
+                No applications yet
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Recent Loan Applications -->
+<div class="mt-4 sm:mt-6 bg-white rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex items-center justify-between">
+        <h2 class="font-semibold text-navy-800 text-sm sm:text-base">Recent Loan Applications</h2>
+        <a href="/admin-panel/loans/" class="text-accent text-xs sm:text-sm font-medium hover:underline">View All</a>
+    </div>
+    
+    <!-- Desktop Table -->
+    <div class="hidden sm:block overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Applicant</th>
+                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
+                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Amount</th>
+                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                    <th class="px-4 sm:px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for loan in recent_loans %}
+                <tr class="table-row">
+                    <td class="px-4 sm:px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-navy-800 rounded-lg flex items-center justify-center">
+                                <span class="text-white font-bold text-xs">{{ loan.user.first_name|slice:":1"|upper }}</span>
+                            </div>
+                            <span class="font-medium text-navy-800 text-sm">{{ loan.user.get_full_name }}</span>
+                        </div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4 text-slate-600 text-sm">{{ loan.loan_type|title }}</td>
+                    <td class="px-4 sm:px-6 py-4 font-semibold text-navy-800 text-sm">${{ loan.amount|floatformat:0 }}</td>
+                    <td class="px-4 sm:px-6 py-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-medium {% if loan.status == 'approved' %}bg-green-100 text-green-700{% elif loan.status == 'pending' %}bg-yellow-100 text-yellow-700{% elif loan.status == 'rejected' %}bg-red-100 text-red-700{% else %}bg-slate-100 text-slate-600{% endif %}">
+                            {{ loan.status|title }}
+                        </span>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4 text-slate-500 text-sm">{{ loan.created_at|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-4 sm:px-6 py-8 text-center text-slate-500 text-sm">No loan applications yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Mobile Cards -->
+    <div class="sm:hidden divide-y divide-slate-100">
+        {% for loan in recent_loans %}
+        <div class="p-4 space-y-2">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-navy-800 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-xs">{{ loan.user.first_name|slice:":1"|upper }}</span>
+                    </div>
+                    <span class="font-medium text-navy-800 text-sm">{{ loan.user.get_full_name }}</span>
+                </div>
+                <span class="px-2 py-1 rounded-full text-xs font-medium {% if loan.status == 'approved' %}bg-green-100 text-green-700{% elif loan.status == 'pending' %}bg-yellow-100 text-yellow-700{% elif loan.status == 'rejected' %}bg-red-100 text-red-700{% else %}bg-slate-100 text-slate-600{% endif %}">
+                    {{ loan.status|title }}
+                </span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+                <span class="text-slate-500">{{ loan.loan_type|title }}</span>
+                <span class="font-semibold text-navy-800">${{ loan.amount|floatformat:0 }}</span>
+            </div>
+            <div class="text-xs text-slate-400">{{ loan.created_at|date:"M d, Y" }}</div>
+        </div>
+        {% empty %}
+        <div class="p-6 text-center text-slate-500 text-sm">No loan applications yet</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

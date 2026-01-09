@@ -1,0 +1,623 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Messages{% endblock %}
+{% block page_title %}Messages{% endblock %}
+{% block page_subtitle %}Chat with job seekers and employers{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Desktop chat layout */
+    .chat-container {
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        height: calc(100vh - 180px);
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    }
+    
+    /* Mobile: Show only chat list or conversation */
+    @media (max-width: 768px) {
+        .chat-container {
+            grid-template-columns: 1fr;
+            height: calc(100vh - 140px);
+        }
+        .chat-list-panel {
+            display: block;
+        }
+        .chat-conversation-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 100;
+            background: white;
+        }
+        .chat-conversation-panel.active {
+            display: flex;
+            flex-direction: column;
+        }
+    }
+    
+    .chat-list-panel {
+        border-right: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+        background: #f8fafc;
+    }
+    
+    .chat-conversation-panel {
+        display: flex;
+        flex-direction: column;
+        background: white;
+    }
+    
+    /* Chat list items */
+    .chat-item {
+        padding: 16px;
+        border-bottom: 1px solid #e2e8f0;
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .chat-item:hover {
+        background: #f1f5f9;
+    }
+    
+    .chat-item.active {
+        background: #e0e7ff;
+        border-left: 3px solid #6366f1;
+    }
+    
+    .chat-item.unread {
+        background: #eff6ff;
+    }
+    
+    /* Messages area */
+    .messages-area {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px;
+        background: #f8fafc;
+        background-image: 
+            linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)),
+            repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(0,0,0,0.02) 10px, rgba(0,0,0,0.02) 20px);
+    }
+    
+    .message-bubble {
+        max-width: 65%;
+        margin-bottom: 16px;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .message-bubble.sent {
+        align-self: flex-end;
+        align-items: flex-end;
+    }
+    
+    .message-bubble.received {
+        align-self: flex-start;
+        align-items: flex-start;
+    }
+    
+    .message-content {
+        padding: 12px 16px;
+        border-radius: 12px;
+        word-wrap: break-word;
+    }
+    
+    .message-bubble.sent .message-content {
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .message-bubble.received .message-content {
+        background: white;
+        color: #1e293b;
+        border: 1px solid #e2e8f0;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .message-time {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 4px;
+        padding: 0 4px;
+    }
+    
+    /* Message input area */
+    .message-input-area {
+        padding: 16px 24px;
+        border-top: 1px solid #e2e8f0;
+        background: white;
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+    }
+    
+    .message-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 24px;
+        resize: none;
+        max-height: 120px;
+        font-family: inherit;
+        transition: border-color 0.2s;
+    }
+    
+    .message-input:focus {
+        outline: none;
+        border-color: #6366f1;
+    }
+    
+    .send-button {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s, box-shadow 0.2s;
+        flex-shrink: 0;
+    }
+    
+    .send-button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+    
+    .send-button:active {
+        transform: scale(0.95);
+    }
+    
+    /* Online status indicator */
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        border: 2px solid white;
+    }
+    
+    .status-dot.online {
+        background: #22c55e;
+    }
+    
+    .status-dot.offline {
+        background: #94a3b8;
+    }
+    
+    /* Scroll styling */
+    .messages-area::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .messages-area::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+    
+    .chat-list-content::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .chat-list-content::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
+    
+    /* Mobile Bottom Navigation (WhatsApp style) */
+    .mobile-bottom-nav {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-top: 1px solid #e2e8f0;
+        padding: 8px 0;
+        z-index: 1000;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+    }
+    
+    @media (max-width: 768px) {
+        .mobile-bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .chat-container {
+            margin-bottom: 60px;
+        }
+    }
+    
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex: 1;
+        text-decoration: none;
+        color: #64748b;
+    }
+    
+    .nav-item.active {
+        color: #6366f1;
+    }
+    
+    .nav-item svg {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .nav-item span {
+        font-size: 11px;
+        font-weight: 500;
+    }
+    
+    .nav-badge {
+        position: absolute;
+        top: 4px;
+        right: 12px;
+        background: #ef4444;
+        color: white;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 10px;
+        min-width: 18px;
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="smooth-card p-0 overflow-hidden">
+    <div class="chat-container">
+        <!-- Chat List Panel (Left Side - Desktop, Full Screen - Mobile) -->
+        <div class="chat-list-panel" id="chatListPanel">
+            <!-- Search Bar -->
+            <div class="p-4 border-b border-slate-200 bg-white">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        placeholder="Search conversations..."
+                        class="w-full px-4 py-2.5 pl-10 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all"
+                        id="searchChats"
+                    >
+                    <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+            </div>
+            
+            <!-- Chat List -->
+            <div class="chat-list-content flex-1 overflow-y-auto">
+                <!-- Active Chat Item -->
+                <div class="chat-item active" onclick="openChat('john-doe')">
+                    <div class="relative flex-shrink-0">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
+                            JD
+                        </div>
+                        <div class="status-dot online"></div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-semibold text-slate-900 truncate">John Doe</h3>
+                            <span class="text-xs text-slate-500">2:30 PM</span>
+                        </div>
+                        <p class="text-sm text-slate-600 truncate">Thanks for considering my application...</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full">Job Seeker</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Unread Chat Item -->
+                <div class="chat-item unread" onclick="openChat('sarah-williams')">
+                    <div class="relative flex-shrink-0">
+                        <div class="w-12 h-12 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-semibold">
+                            SW
+                        </div>
+                        <div class="status-dot online"></div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-semibold text-slate-900 truncate">Sarah Williams</h3>
+                            <span class="text-xs text-slate-500">Yesterday</span>
+                        </div>
+                        <p class="text-sm text-slate-900 font-medium truncate">When can we schedule the interview?</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs px-2 py-0.5 bg-teal-100 text-teal-700 rounded-full">Job Seeker</span>
+                            <span class="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full font-medium">3 new</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Regular Chat Items -->
+                <div class="chat-item" onclick="openChat('tech-corp')">
+                    <div class="relative flex-shrink-0">
+                        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-full flex items-center justify-center text-white font-semibold">
+                            TC
+                        </div>
+                        <div class="status-dot offline"></div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-semibold text-slate-900 truncate">TechCorp Inc</h3>
+                            <span class="text-xs text-slate-500">Mon</span>
+                        </div>
+                        <p class="text-sm text-slate-600 truncate">We'd like to proceed with the next round</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full">Employer</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-item" onclick="openChat('michael-chen')">
+                    <div class="relative flex-shrink-0">
+                        <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center text-white font-semibold">
+                            MC
+                        </div>
+                        <div class="status-dot online"></div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-semibold text-slate-900 truncate">Michael Chen</h3>
+                            <span class="text-xs text-slate-500">Sun</span>
+                        </div>
+                        <p class="text-sm text-slate-600 truncate">Looking forward to hearing from you</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full">Job Seeker</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat Conversation Panel (Right Side - Desktop, Full Screen - Mobile) -->
+        <div class="chat-conversation-panel" id="chatConversationPanel">
+            <!-- Chat Header -->
+            <div class="p-4 border-b border-slate-200 bg-white flex items-center gap-4">
+                <!-- Back button for mobile -->
+                <button onclick="closeChat()" class="md:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                    <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                
+                <div class="relative flex-shrink-0">
+                    <div class="w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-semibold">
+                        JD
+                    </div>
+                    <div class="status-dot online"></div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-semibold text-slate-900">John Doe</h3>
+                    <p class="text-sm text-slate-500">Senior Software Engineer • Online</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button class="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+                        <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Messages Area -->
+            <div class="messages-area flex flex-col" id="messagesArea">
+ !-- Mobile Bottom Navigation (WhatsApp/Telegram style) -->
+<div class="mobile-bottom-nav">
+    <a href="/admin-panel/users/" class="nav-item">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+        <span>Contacts</span>
+    </a>
+    
+    <a href="/admin-panel/messages/" class="nav-item active">
+        <div style="position: relative;">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+            <span class="nav-badge">3</span>
+        </div>
+        <span>Chats</span>
+    </a>
+    
+    <a href="/admin-panel/jobs/" class="nav-item">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+        <span>Jobs</span>
+    </a>
+    
+    <a href="/admin-panel/profile/" class="nav-item">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        <span>Profile</span>
+    </a>
+</div>
+
+<               <!-- Date Separator -->
+                <div class="flex items-center justify-center mb-6">
+                    <span class="px-4 py-1.5 bg-white text-slate-500 text-xs font-medium rounded-full border border-slate-200 shadow-sm">Today</span>
+                </div>
+                
+                <!-- Received Message -->
+                <div class="message-bubble received">
+                    <div class="message-content">
+                        <p>Hi! I'm very interested in the Senior Software Engineer position. I have 8 years of experience in full-stack development.</p>
+                    </div>
+                    <span class="message-time">10:30 AM</span>
+                </div>
+                
+                <!-- Sent Message -->
+                <div class="message-bubble sent">
+                    <div class="message-content">
+                        <p>Hello John! Thank you for your interest. Your profile looks impressive. Would you be available for a quick call this week?</p>
+                    </div>
+                    <span class="message-time">11:15 AM</span>
+                </div>
+                
+                <!-- Received Message -->
+                <div class="message-bubble received">
+                    <div class="message-content">
+                        <p>Yes, absolutely! I'm available Wednesday or Thursday afternoon. What time works best for you?</p>
+                    </div>
+                    <span class="message-time">11:20 AM</span>
+                </div>
+                
+                <!-- Sent Message -->
+                <div class="message-bubble sent">
+                    <div class="message-content">
+                        <p>Thursday at 2 PM works perfectly. I'll send you a calendar invite with the video call link.</p>
+                    </div>
+                    <span class="message-time">2:25 PM</span>
+                </div>
+                
+                <!-- Received Message -->
+                <div class="message-bubble received">
+                    <div class="message-content">
+                        <p>Perfect! Looking forward to it. Thanks!</p>
+                    </div>
+                    <span class="message-time">2:30 PM</span>
+                </div>
+            </div>
+            
+            <!-- Message Input Area -->
+            <div class="message-input-area">
+                <button class="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                </button>
+                <textarea 
+                    class="message-input" 
+                    placeholder="Type a message..."
+                    rows="1"
+                    id="messageInput"
+                    onkeypress="handleKeyPress(event)"
+                ></textarea>
+                <button class="send-button" onclick="sendMessage()">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openChat(chatId) {
+    // Mobile: Show conversation panel
+    if (window.innerWidth <= 768) {
+        document.getElementById('chatConversationPanel').classList.add('active');
+    }
+    
+    // Update active state
+    document.querySelectorAll('.chat-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    event.currentTarget.classList.add('active');
+    
+    // Remove unread status
+    event.currentTarget.classList.remove('unread');
+    
+    // Scroll to bottom of messages
+    scrollToBottom();
+}
+
+function closeChat() {
+    // Mobile: Hide conversation panel
+    document.getElementById('chatConversationPanel').classList.remove('active');
+}
+
+function scrollToBottom() {
+    const messagesArea = document.getElementById('messagesArea');
+    setTimeout(() => {
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }, 100);
+}
+
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    // Create message bubble
+    const messagesArea = document.getElementById('messagesArea');
+    const messageBubble = document.createElement('div');
+    messageBubble.className = 'message-bubble sent';
+    
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    
+    messageBubble.innerHTML = `
+        <div class="message-content">
+            <p>${escapeHtml(message)}</p>
+        </div>
+        <span class="message-time">${timeString}</span>
+    `;
+    
+    messagesArea.appendChild(messageBubble);
+    
+    // Clear input
+    input.value = '';
+    input.style.height = 'auto';
+    
+    // Scroll to bottom
+    scrollToBottom();
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Auto-resize textarea
+document.getElementById('messageInput').addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = (this.scrollHeight) + 'px';
+});
+
+// Search functionality
+document.getElementById('searchChats').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const chatItems = document.querySelectorAll('.chat-item');
+    
+    chatItems.forEach(item => {
+        const name = item.querySelector('h3').textContent.toLowerCase();
+        const message = item.querySelector('p').textContent.toLowerCase();
+        
+        if (name.includes(searchTerm) || message.includes(searchTerm)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+});
+
+// Auto-scroll to bottom on page load
+document.addEventListener('DOMContentLoaded', scrollToBottom);
+
+// Handle window resize
+window.addEventListener('resize', function() {
+    if (window.innerWidth > 768) {
+        document.getElementById('chatConversationPanel').classList.remove('active');
+    }
+});
+</script>
+{% endblock %}

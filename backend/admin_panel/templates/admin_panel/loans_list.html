@@ -1,0 +1,194 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Loan Applications{% endblock %}
+{% block page_title %}Loan Applications{% endblock %}
+{% block page_subtitle %}Manage loan applications{% endblock %}
+
+{% block content %}
+<!-- Header Actions -->
+<div class="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
+    <div class="flex flex-col sm:flex-row gap-3">
+        <div class="relative flex-1 sm:flex-none">
+            <input 
+                type="text" 
+                placeholder="Search applications..." 
+                class="w-full sm:w-64 pl-10 pr-4 py-2 sm:py-2.5 border border-slate-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-accent focus:border-accent outline-none text-sm"
+            >
+            <svg class="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+        <select class="px-3 sm:px-4 py-2 sm:py-2.5 border border-slate-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-accent focus:border-accent outline-none text-sm">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="under_review">Under Review</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+        </select>
+        <select class="px-3 sm:px-4 py-2 sm:py-2.5 border border-slate-200 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-accent focus:border-accent outline-none text-sm">
+            <option value="">All Types</option>
+            <option value="personal">Personal Loan</option>
+            <option value="business">Business Loan</option>
+        </select>
+    </div>
+</div>
+
+<!-- Desktop Table -->
+<div class="hidden lg:block bg-white rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Application #</th>
+                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Applicant</th>
+                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
+                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Amount</th>
+                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Credit Score</th>
+                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
+                    <th class="px-4 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for loan in loans %}
+                <tr class="table-row hover:bg-slate-50 transition-colors">
+                    <td class="px-4 sm:px-6 py-4">
+                        <span class="font-mono text-sm text-navy-800 font-semibold">LN-{{ loan.id|stringformat:"06d" }}</span>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-navy-800 to-navy-900 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold text-sm">{{ loan.user.first_name|slice:":1"|upper }}</span>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-navy-800 text-sm">{{ loan.user.get_full_name }}</h3>
+                                <p class="text-slate-500 text-xs">{{ loan.user.email }}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-medium {% if loan.loan_type == 'business' %}bg-purple-100 text-purple-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                            {{ loan.loan_type|title }}
+                        </span>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                        <span class="font-bold text-navy-800">${{ loan.amount|floatformat:0 }}</span>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                        <span class="text-slate-600 text-sm">{{ loan.credit_score_range|title }}</span>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-medium {% if loan.status == 'approved' %}bg-green-100 text-green-700{% elif loan.status == 'pending' %}bg-yellow-100 text-yellow-700{% elif loan.status == 'under_review' %}bg-blue-100 text-blue-700{% elif loan.status == 'rejected' %}bg-red-100 text-red-700{% else %}bg-slate-100 text-slate-600{% endif %}">
+                            {{ loan.status|title }}
+                        </span>
+                    </td>
+                    <td class="px-4 sm:px-6 py-4 text-slate-500 text-sm">
+                        {{ loan.created_at|date:"M d, Y" }}
+                    </td>
+                    <td class="px-4 sm:px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <a href="/admin-panel/loans/{{ loan.id }}/" class="p-2 hover:bg-slate-100 rounded-lg transition-colors" title="View Details">
+                                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            </a>
+                            {% if loan.status == 'pending' or loan.status == 'under_review' %}
+                            <form method="POST" action="/admin-panel/loans/{{ loan.id }}/approve/" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="p-2 hover:bg-green-50 rounded-lg transition-colors" title="Approve">
+                                    <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </button>
+                            </form>
+                            <form method="POST" action="/admin-panel/loans/{{ loan.id }}/reject/" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="p-2 hover:bg-red-50 rounded-lg transition-colors" title="Reject">
+                                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <h3 class="font-semibold text-navy-800 mb-1">No loan applications</h3>
+                            <p class="text-slate-500 text-sm">Loan applications will appear here</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Mobile/Tablet Cards -->
+<div class="lg:hidden space-y-3">
+    {% for loan in loans %}
+    <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-4">
+        <div class="flex items-start justify-between gap-3 mb-3">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 bg-gradient-to-br from-navy-800 to-navy-900 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span class="text-white font-bold text-sm">{{ loan.user.first_name|slice:":1"|upper }}</span>
+                </div>
+                <div class="min-w-0">
+                    <h3 class="font-semibold text-navy-800 text-sm truncate">{{ loan.user.get_full_name }}</h3>
+                    <p class="text-slate-500 text-xs font-mono">LN-{{ loan.id|stringformat:"06d" }}</p>
+                </div>
+            </div>
+            <span class="px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 {% if loan.status == 'approved' %}bg-green-100 text-green-700{% elif loan.status == 'pending' %}bg-yellow-100 text-yellow-700{% elif loan.status == 'under_review' %}bg-blue-100 text-blue-700{% elif loan.status == 'rejected' %}bg-red-100 text-red-700{% else %}bg-slate-100 text-slate-600{% endif %}">
+                {{ loan.status|title }}
+            </span>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-2 mb-3 text-sm">
+            <div>
+                <span class="text-slate-500 text-xs">Amount</span>
+                <p class="font-bold text-navy-800">${{ loan.amount|floatformat:0 }}</p>
+            </div>
+            <div>
+                <span class="text-slate-500 text-xs">Type</span>
+                <p class="text-slate-700">{{ loan.loan_type|title }}</p>
+            </div>
+            <div>
+                <span class="text-slate-500 text-xs">Credit Score</span>
+                <p class="text-slate-700">{{ loan.credit_score_range|title }}</p>
+            </div>
+            <div>
+                <span class="text-slate-500 text-xs">Date</span>
+                <p class="text-slate-700">{{ loan.created_at|date:"M d, Y" }}</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+            <a href="/admin-panel/loans/{{ loan.id }}/" class="p-2 hover:bg-slate-100 rounded-lg transition-colors" title="View Details">
+                <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+            </a>
+            {% if loan.status == 'pending' or loan.status == 'under_review' %}
+            <form method="POST" action="/admin-panel/loans/{{ loan.id }}/approve/" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="p-2 hover:bg-green-50 rounded-lg transition-colors" title="Approve">
+                    <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+            </form>
+            <form method="POST" action="/admin-panel/loans/{{ loan.id }}/reject/" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="p-2 hover:bg-red-50 rounded-lg transition-colors" title="Reject">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% empty %}
+    <div class="bg-white rounded-xl border border-slate-100 shadow-sm p-8 text-center">
+        <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
+        <h3 class="font-semibold text-navy-800 mb-1 text-sm">No loan applications</h3>
+        <p class="text-slate-500 text-xs">Loan applications will appear here</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

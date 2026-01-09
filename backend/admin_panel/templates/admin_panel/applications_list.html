@@ -1,0 +1,404 @@
+{% extends 'admin_panel/base.html' %}
+
+{% block title %}Job Applications{% endblock %}
+{% block page_title %}Job Applications{% endblock %}
+{% block page_subtitle %}Review and manage job applications{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 mb-6">
+    <!-- Total Applications -->
+    <div class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-slate-500 text-sm font-medium uppercase">Total</p>
+                <p class="text-3xl font-bold text-slate-800 mt-1">{{ stats.total }}</p>
+            </div>
+            <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Under Review -->
+    <div class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-slate-500 text-sm font-medium uppercase">Review</p>
+                <p class="text-3xl font-bold text-blue-600 mt-1">{{ stats.under_review }}</p>
+            </div>
+            <div class="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interview -->
+    <div class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-slate-500 text-sm font-medium uppercase">Interview</p>
+                <p class="text-3xl font-bold text-indigo-600 mt-1">{{ stats.interview }}</p>
+            </div>
+            <div class="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Offered -->
+    <div class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-slate-500 text-sm font-medium uppercase">Offered</p>
+                <p class="text-3xl font-bold text-teal-600 mt-1">{{ stats.offered }}</p>
+            </div>
+            <div class="w-10 h-10 bg-teal-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hired -->
+    <div class="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-sm">
+        <div class="flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <p class="text-slate-500 text-sm font-medium uppercase">Hired</p>
+                <p class="text-3xl font-bold text-green-600 mt-1">{{ stats.hired }}</p>
+            </div>
+            <div class="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
+        <div class="relative flex-1 sm:max-w-xs">
+            <input 
+                type="text" 
+                id="searchInput"
+                placeholder="Search applications..." 
+                class="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            >
+            <svg class="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+        <select id="statusFilter" class="px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+            <option value="">All Status</option>
+            <option value="submitted">Submitted</option>
+            <option value="under_review">Under Review</option>
+            <option value="interview">Interview</option>
+            <option value="offered">Offered</option>
+            <option value="hired">Hired</option>
+            <option value="rejected">Rejected</option>
+            <option value="withdrawn">Withdrawn</option>
+        </select>
+        <select id="sortFilter" class="px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+            <option value="-created_at">Newest First</option>
+            <option value="created_at">Oldest First</option>
+            <option value="applicant">Applicant A-Z</option>
+            <option value="job">Job Title A-Z</option>
+        </select>
+    </div>
+    <button onclick="exportApplications()" class="flex items-center justify-center gap-2 bg-slate-600 text-white font-semibold py-2.5 px-6 rounded-xl hover:bg-slate-700 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        Export
+    </button>
+</div>
+
+<!-- Desktop Table -->
+<div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden hidden md:block">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-slate-50 border-b border-slate-100">
+                <tr>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-slate-700">Applicant</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-slate-700">Job Position</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-slate-700">Company</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-slate-700">Status</th>
+                    <th class="px-6 py-4 text-left text-sm font-semibold text-slate-700">Applied</th>
+                    <th class="px-6 py-4 text-right text-sm font-semibold text-slate-700">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+                {% for app in applications %}
+                <tr class="hover:bg-slate-50 transition-colors application-row" 
+                    data-status="{{ app.status }}"
+                    data-applicant="{{ app.applicant.get_full_name|lower }}"
+                    data-job="{{ app.job.title|lower }}"
+                    data-company="{{ app.job.company.name|lower }}"
+                    data-date="{{ app.created_at|date:'Y-m-d' }}">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            {% if app.applicant.avatar %}
+                            <img src="{{ app.applicant.avatar.url }}" alt="{{ app.applicant.get_full_name }}" class="w-10 h-10 rounded-full object-cover">
+                            {% else %}
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                <span class="text-blue-600 font-semibold text-base">{{ app.applicant.first_name.0 }}{{ app.applicant.last_name.0 }}</span>
+                            </div>
+                            {% endif %}
+                            <div class="min-w-0">
+                                <div class="font-semibold text-navy-800 text-base">{{ app.applicant.get_full_name }}</div>
+                                <div class="text-sm text-slate-500 truncate">{{ app.applicant.email }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-navy-800 text-base">{{ app.job.title }}</div>
+                        <div class="text-sm text-slate-500">{{ app.job.job_type|title }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-base text-slate-700">{{ app.job.company.name }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium
+                            {% if app.status == 'hired' %}bg-green-100 text-green-700
+                            {% elif app.status == 'offered' %}bg-teal-100 text-teal-700
+                            {% elif app.status == 'interview' %}bg-indigo-100 text-indigo-700
+                            {% elif app.status == 'under_review' %}bg-blue-100 text-blue-700
+                            {% elif app.status == 'rejected' %}bg-red-100 text-red-700
+                            {% elif app.status == 'withdrawn' %}bg-slate-100 text-slate-700
+                            {% else %}bg-slate-100 text-slate-600{% endif %}">
+                            {{ app.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-base text-slate-700">{{ app.created_at|date:"M d, Y" }}</div>
+                        <div class="text-sm text-slate-500">{{ app.created_at|date:"g:i A" }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="{% url 'admin_panel:application_detail' app.id %}" 
+                               class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="View Details">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            </a>
+                            <div class="relative status-dropdown">
+                                <button onclick="toggleStatusDropdown({{ app.id }})" class="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors" title="Update Status">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                                </button>
+                                <div id="dropdown-{{ app.id }}" class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-100 py-2 hidden z-20">
+                                    <form method="POST" action="{% url 'admin_panel:application_status' app.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" name="status" value="submitted" class="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                            Submitted
+                                        </button>
+                                        <button type="submit" name="status" value="under_review" class="w-full px-4 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                            Under Review
+                                        </button>
+                                        <button type="submit" name="status" value="interview" class="w-full px-4 py-2 text-left text-sm text-indigo-600 hover:bg-indigo-50 flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                            Interview Scheduled
+                                        </button>
+                                        <button type="submit" name="status" value="offered" class="w-full px-4 py-2 text-left text-sm text-teal-600 hover:bg-teal-50 flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                                            Offered
+                                        </button>
+                                        <button type="submit" name="status" value="hired" class="w-full px-4 py-2 text-left text-sm text-green-600 hover:bg-green-50 flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                                            Hired
+                                        </button>
+                                        <div class="border-t border-slate-100 my-1"></div>
+                                        <button type="submit" name="status" value="rejected" class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                                            Rejected
+                                        </button>
+                                        <button type="submit" name="status" value="withdrawn" class="w-full px-4 py-2 text-left text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-2">
+                                            <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                            Withdrawn
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-12 text-center">
+                        <div class="flex flex-col items-center">
+                            <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                                <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            </div>
+                            <h3 class="font-semibold text-navy-800 mb-1">No applications yet</h3>
+                            <p class="text-slate-500 text-sm">Applications will appear here once candidates apply</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Mobile Cards -->
+<div class="md:hidden space-y-4">
+    {% for app in applications %}
+    <div class="bg-white rounded-xl border border-slate-100 p-4 shadow-sm application-card"
+         data-status="{{ app.status }}"
+         data-applicant="{{ app.applicant.get_full_name|lower }}"
+         data-job="{{ app.job.title|lower }}"
+         data-company="{{ app.job.company.name|lower }}"
+         data-date="{{ app.created_at|date:'Y-m-d' }}">
+        <!-- Applicant Info -->
+        <div class="flex items-start gap-3 mb-3">
+            {% if app.applicant.avatar %}
+            <img src="{{ app.applicant.avatar.url }}" alt="{{ app.applicant.get_full_name }}" class="w-12 h-12 rounded-full object-cover">
+            {% else %}
+            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <span class="text-blue-600 font-semibold">{{ app.applicant.first_name.0 }}{{ app.applicant.last_name.0 }}</span>
+            </div>
+            {% endif %}
+            <div class="min-w-0 flex-1">
+                <div class="font-semibold text-navy-800">{{ app.applicant.get_full_name }}</div>
+                <div class="text-sm text-slate-500 truncate">{{ app.applicant.email }}</div>
+            </div>
+            <span class="inline-flex items-center px-2 py-1 rounded-lg text-xs font-medium flex-shrink-0
+                {% if app.status == 'hired' %}bg-green-100 text-green-700
+                {% elif app.status == 'offered' %}bg-teal-100 text-teal-700
+                {% elif app.status == 'interview' %}bg-indigo-100 text-indigo-700
+                {% elif app.status == 'under_review' %}bg-blue-100 text-blue-700
+                {% elif app.status == 'rejected' %}bg-red-100 text-red-700
+                {% elif app.status == 'withdrawn' %}bg-slate-100 text-slate-700
+                {% else %}bg-slate-100 text-slate-600{% endif %}">
+                {{ app.get_status_display }}
+            </span>
+        </div>
+
+        <!-- Job Info -->
+        <div class="space-y-2 mb-3">
+            <div class="flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                <span class="font-medium text-slate-700">{{ app.job.title }}</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                <span class="text-slate-700">{{ app.job.company.name }}</span>
+            </div>
+            <div class="flex items-center gap-2 text-sm">
+                <svg class="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <span class="text-slate-500">{{ app.created_at|date:"M d, Y - g:i A" }}</span>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex gap-2 pt-3 border-t border-slate-100">
+            <a href="{% url 'admin_panel:application_detail' app.id %}" 
+               class="flex-1 px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors text-center">
+                View Details
+            </a>
+            <button onclick="toggleStatusDropdown({{ app.id }})" class="px-3 py-2 bg-slate-100 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-200 transition-colors">
+                Change Status
+            </button>
+        </div>
+
+        <!-- Mobile Status Dropdown -->
+        <div id="dropdown-{{ app.id }}" class="hidden mt-3 pt-3 border-t border-slate-100">
+            <form method="POST" action="{% url 'admin_panel:application_status' app.id %}" class="space-y-2">
+                {% csrf_token %}
+                <button type="submit" name="status" value="submitted" class="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 rounded-lg flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                    Submitted
+                </button>
+                <button type="submit" name="status" value="under_review" class="w-full px-3 py-2 text-left text-sm text-blue-600 hover:bg-blue-50 rounded-lg flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    Under Review
+                </button>
+                <button type="submit" name="status" value="interview" class="w-full px-3 py-2 text-left text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                    Interview Scheduled
+                </button>
+                <button type="submit" name="status" value="offered" class="w-full px-3 py-2 text-left text-sm text-teal-600 hover:bg-teal-50 rounded-lg flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-teal-500"></span>
+                    Offered
+                </button>
+                <button type="submit" name="status" value="hired" class="w-full px-3 py-2 text-left text-sm text-green-600 hover:bg-green-50 rounded-lg flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                    Hired
+                </button>
+                <button type="submit" name="status" value="rejected" class="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                    Rejected
+                </button>
+                <button type="submit" name="status" value="withdrawn" class="w-full px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-50 rounded-lg flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                    Withdrawn
+                </button>
+            </form>
+        </div>
+    </div>
+    {% empty %}
+    <div class="bg-white rounded-xl border border-slate-100 p-8 text-center">
+        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        </div>
+        <h3 class="font-semibold text-navy-800 mb-1">No applications yet</h3>
+        <p class="text-slate-500 text-sm">Applications will appear here once candidates apply</p>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+// Toggle status dropdown
+function toggleStatusDropdown(id) {
+    const dropdown = document.getElementById('dropdown-' + id);
+    // Close all other dropdowns
+    document.querySelectorAll('[id^="dropdown-"]').forEach(d => {
+        if (d.id !== 'dropdown-' + id) {
+            d.classList.add('hidden');
+        }
+    });
+    dropdown.classList.toggle('hidden');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.status-dropdown')) {
+        document.querySelectorAll('[id^="dropdown-"]').forEach(d => {
+            d.classList.add('hidden');
+        });
+    }
+});
+
+// Search functionality
+const searchInput = document.getElementById('searchInput');
+const statusFilter = document.getElementById('statusFilter');
+const sortFilter = document.getElementById('sortFilter');
+
+function filterApplications() {
+    const searchTerm = searchInput.value.toLowerCase();
+    const statusValue = statusFilter.value;
+    
+    const rows = document.querySelectorAll('.application-row, .application-card');
+    
+    rows.forEach(row => {
+        const applicant = row.dataset.applicant || '';
+        const job = row.dataset.job || '';
+        const company = row.dataset.company || '';
+        const status = row.dataset.status || '';
+        
+        const matchesSearch = applicant.includes(searchTerm) || 
+                            job.includes(searchTerm) || 
+                            company.includes(searchTerm);
+        const matchesStatus = !statusValue || status === statusValue;
+        
+        if (matchesSearch && matchesStatus) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+searchInput.addEventListener('input', filterApplications);
+statusFilter.addEventListener('change', filterApplications);
+
+// Export function
+function exportApplications() {
+    alert('Export functionality would download applications data as CSV/Excel');
+}
+</script>
+{% endblock %}
