@@ -536,8 +536,8 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               </div>
             )}
 
-            {/* Message Input - Fixed at bottom */}
-            <div className="flex-shrink-0 p-3 sm:p-4 bg-white border-t border-blue-100 z-10">
+            {/* Message Input - Fixed at bottom with safe area padding */}
+            <div className="flex-shrink-0 p-3 sm:p-4 bg-white border-t border-blue-100 z-10" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
               <div className="flex items-end gap-2 sm:gap-3">
                 {/* File attachment button */}
                 <input
