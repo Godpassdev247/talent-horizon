@@ -1,16 +1,15 @@
 /**
  * Firebase Messages Component
  * Real-time messaging using Firebase Firestore
- * WhatsApp/Telegram style chat UI
+ * Mobile-first responsive chat UI with white/blue theme
  */
 
 import { useState, useEffect, useRef } from 'react';
 import { 
-  Search, Send, Paperclip, MessageSquare, ArrowLeft, 
-  User, Check, CheckCheck, Image, File, X, Download
+  Search, Send, ArrowLeft, MessageSquare, Check, CheckCheck
 } from 'lucide-react';
 import { useFirebaseMessaging } from '../hooks/useFirebaseMessaging';
-import { FirebaseConversation, FirebaseMessage } from '../lib/firebase';
+import { FirebaseConversation } from '../lib/firebase';
 import { Timestamp } from 'firebase/firestore';
 
 interface FirebaseMessagesProps {
@@ -67,12 +66,12 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
     totalUnreadCount,
     selectConversation,
     sendNewMessage,
-    markAsRead,
   } = useFirebaseMessaging(currentUser);
 
   const [messageInput, setMessageInput] = useState('');
   const [sending, setSending] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showMobileChat, setShowMobileChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom when messages change
@@ -80,9 +79,9 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Handle send message
+  // Handle send message (reply in same conversation)
   const handleSendMessage = async () => {
-    if (!messageInput.trim() || sending) return;
+    if (!messageInput.trim() || sending || !selectedConversation) return;
 
     setSending(true);
     try {
@@ -103,6 +102,18 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
     }
   };
 
+  // Handle conversation selection
+  const handleSelectConversation = (convId: string) => {
+    selectConversation(convId);
+    setShowMobileChat(true);
+  };
+
+  // Handle back button on mobile
+  const handleBackToList = () => {
+    setShowMobileChat(false);
+    selectConversation('');
+  };
+
   // Filter conversations by search
   const filteredConversations = conversations.filter(conv => {
     if (!searchQuery) return true;
@@ -118,9 +129,9 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center bg-white">
+      <div className="h-[calc(100vh-200px)] md:h-[600px] flex items-center justify-center bg-gradient-to-b from-blue-50 to-white rounded-xl">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-[#667eea] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-slate-600">Loading messages...</p>
         </div>
       </div>
@@ -129,8 +140,8 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
 
   if (error) {
     return (
-      <div className="h-full flex items-center justify-center bg-white">
-        <div className="text-center">
+      <div className="h-[calc(100vh-200px)] md:h-[600px] flex items-center justify-center bg-gradient-to-b from-blue-50 to-white rounded-xl">
+        <div className="text-center px-4">
           <MessageSquare className="w-16 h-16 text-red-300 mx-auto mb-4" />
           <p className="text-red-600 font-medium">Error loading messages</p>
           <p className="text-slate-400 text-sm mt-2">{error}</p>
@@ -141,44 +152,48 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
 
   if (conversations.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center bg-white">
-        <div className="text-center">
-          <MessageSquare className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <p className="text-slate-600 font-medium">No messages yet</p>
-          <p className="text-slate-400 text-sm mt-2">When employers contact you, their messages will appear here</p>
+      <div className="h-[calc(100vh-200px)] md:h-[600px] flex items-center justify-center bg-gradient-to-b from-blue-50 to-white rounded-xl">
+        <div className="text-center px-4">
+          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <MessageSquare className="w-10 h-10 text-blue-500" />
+          </div>
+          <p className="text-slate-700 font-semibold text-lg">No messages yet</p>
+          <p className="text-slate-400 text-sm mt-2 max-w-xs mx-auto">
+            When employers contact you about job opportunities, their messages will appear here
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full bg-[#f5f7fa] flex-col md:flex-row">
+    <div className="h-[calc(100vh-200px)] md:h-[600px] flex bg-gradient-to-b from-blue-50 to-white rounded-xl overflow-hidden shadow-lg border border-blue-100">
       {/* Left Panel - Conversations List */}
-      <div className={`${selectedConversation ? 'hidden md:flex' : 'flex'} w-full md:w-[320px] lg:w-[360px] flex-col bg-white border-r border-[#e5e7eb] flex-shrink-0`}>
+      <div className={`${showMobileChat ? 'hidden' : 'flex'} md:flex w-full md:w-[320px] lg:w-[340px] flex-col bg-white border-r border-blue-100 flex-shrink-0`}>
         {/* Header */}
-        <div className="p-5 border-b border-[#e5e7eb]">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-[#111827]">Messages</h2>
+        <div className="p-4 bg-gradient-to-r from-blue-600 to-blue-500">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xl font-bold text-white">Messages</h2>
             {totalUnreadCount > 0 && (
-              <span className="bg-[#ef4444] text-white text-xs font-bold px-2 py-1 rounded-full">
+              <span className="bg-white text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
                 {totalUnreadCount}
               </span>
             )}
           </div>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-[#9ca3af]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-300" />
             <input 
               type="text"
               placeholder="Search messages..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full py-2.5 px-3 pl-10 border border-[#d1d5db] rounded-lg text-sm focus:outline-none focus:border-[#6366f1] focus:ring-[3px] focus:ring-[#6366f1]/10 transition-all"
+              className="w-full py-2.5 px-3 pl-10 bg-blue-500/30 border-0 rounded-full text-sm text-white placeholder-blue-200 focus:outline-none focus:bg-blue-500/50 focus:ring-2 focus:ring-white/30 transition-all"
             />
           </div>
         </div>
 
         {/* Conversations List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-white">
           {filteredConversations.map((conv) => {
             const otherParticipant = getOtherParticipant(conv);
             const unreadCount = currentUser ? (conv.unreadCount?.[currentUser.id] || 0) : 0;
@@ -187,20 +202,20 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
             return (
               <div 
                 key={conv.id} 
-                className={`flex gap-3 p-4 cursor-pointer border-b border-[#f3f4f6] transition-colors ${
+                className={`flex gap-3 p-4 cursor-pointer border-b border-slate-100 transition-all active:scale-[0.98] ${
                   isSelected 
-                    ? 'bg-[#eff6ff] border-l-[3px] border-l-[#3b82f6]' 
-                    : 'hover:bg-[#f9fafb]'
-                } ${unreadCount > 0 ? 'bg-[#fefce8]' : ''}`}
-                onClick={() => selectConversation(conv.id)}
+                    ? 'bg-blue-50 border-l-4 border-l-blue-500' 
+                    : 'hover:bg-slate-50 border-l-4 border-l-transparent'
+                } ${unreadCount > 0 ? 'bg-blue-50/50' : ''}`}
+                onClick={() => handleSelectConversation(conv.id)}
               >
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center text-white font-semibold text-lg">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-lg shadow-md">
                     {otherParticipant.name.charAt(0).toUpperCase()}
                   </div>
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#ef4444] text-white text-xs font-bold rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-sm">
                       {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                   )}
@@ -209,16 +224,16 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                 {/* Content */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <span className={`font-semibold text-[#111827] truncate ${unreadCount > 0 ? 'font-bold' : ''}`}>
+                    <span className={`font-semibold text-slate-800 truncate ${unreadCount > 0 ? 'font-bold' : ''}`}>
                       {otherParticipant.name}
                     </span>
-                    <span className="text-xs text-[#9ca3af] flex-shrink-0 ml-2">
+                    <span className="text-xs text-slate-400 flex-shrink-0 ml-2">
                       {formatTime(conv.lastMessageTime)}
                     </span>
                   </div>
-                  <p className={`text-sm truncate ${unreadCount > 0 ? 'text-[#111827] font-medium' : 'text-[#6b7280]'}`}>
+                  <p className={`text-sm truncate ${unreadCount > 0 ? 'text-slate-800 font-medium' : 'text-slate-500'}`}>
                     {conv.lastSenderId === currentUser?.id && (
-                      <span className="text-[#9ca3af]">You: </span>
+                      <span className="text-blue-500">You: </span>
                     )}
                     {conv.lastMessage || 'No messages yet'}
                   </p>
@@ -230,34 +245,43 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
       </div>
 
       {/* Right Panel - Chat View */}
-      <div className={`${selectedConversation ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-white`}>
+      <div className={`${showMobileChat ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-gradient-to-b from-blue-50/50 to-white`}>
         {selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="flex items-center gap-3 p-4 border-b border-[#e5e7eb] bg-white">
+            <div className="flex items-center gap-3 p-4 bg-white border-b border-blue-100 shadow-sm">
               <button 
-                className="md:hidden p-2 hover:bg-[#f3f4f6] rounded-lg"
-                onClick={() => selectConversation('')}
+                className="md:hidden p-2 hover:bg-blue-50 rounded-full transition-colors active:scale-95"
+                onClick={handleBackToList}
               >
-                <ArrowLeft className="w-5 h-5 text-[#6b7280]" />
+                <ArrowLeft className="w-5 h-5 text-blue-600" />
               </button>
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#667eea] to-[#764ba2] flex items-center justify-center text-white font-semibold">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold shadow-md">
                 {getOtherParticipant(selectedConversation).name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-[#111827] truncate">
+                <h3 className="font-semibold text-slate-800 truncate">
                   {getOtherParticipant(selectedConversation).name}
                 </h3>
-                <p className="text-xs text-[#6b7280]">
-                  {getOtherParticipant(selectedConversation).role === 'admin' ? 'Administrator' : 'User'}
+                <p className="text-xs text-blue-500 font-medium">
+                  {getOtherParticipant(selectedConversation).role === 'admin' ? 'Recruiter' : 'Job Seeker'}
                 </p>
               </div>
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 bg-[#f0f2f5]">
-              <div className="space-y-3">
-                {messages.map((msg) => {
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {messages.length === 0 ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <MessageSquare className="w-8 h-8 text-blue-400" />
+                    </div>
+                    <p className="text-slate-500 text-sm">No messages yet. Start the conversation!</p>
+                  </div>
+                </div>
+              ) : (
+                messages.map((msg) => {
                   const isOwn = msg.senderId === currentUser?.id;
                   
                   return (
@@ -266,32 +290,21 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                       className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
                     >
                       <div 
-                        className={`relative max-w-[75%] px-4 py-2 rounded-2xl ${
+                        className={`relative max-w-[85%] sm:max-w-[75%] px-4 py-2.5 shadow-sm ${
                           isOwn 
-                            ? 'bg-[#667eea] text-white rounded-br-md' 
-                            : 'bg-white text-[#111827] rounded-bl-md shadow-sm'
+                            ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-br-md' 
+                            : 'bg-white text-slate-800 rounded-2xl rounded-bl-md border border-blue-100'
                         }`}
                       >
-                        {/* Message tail */}
-                        <div 
-                          className={`absolute bottom-0 w-3 h-3 ${
-                            isOwn 
-                              ? 'right-[-6px] bg-[#667eea]' 
-                              : 'left-[-6px] bg-white'
-                          }`}
-                          style={{
-                            clipPath: isOwn 
-                              ? 'polygon(0 0, 0% 100%, 100% 100%)' 
-                              : 'polygon(100% 0, 0% 100%, 100% 100%)'
-                          }}
-                        />
-                        
-                        <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
-                        
-                        <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? 'text-white/70' : 'text-[#9ca3af]'}`}>
-                          <span className="text-[10px]">{formatMessageTime(msg.timestamp)}</span>
+                        <p className="text-[15px] leading-relaxed break-words whitespace-pre-wrap">
+                          {msg.content}
+                        </p>
+                        <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? 'text-blue-100' : 'text-slate-400'}`}>
+                          <span className="text-[11px]">
+                            {formatMessageTime(msg.timestamp)}
+                          </span>
                           {isOwn && (
-                            msg.isRead 
+                            msg.read 
                               ? <CheckCheck className="w-3.5 h-3.5" />
                               : <Check className="w-3.5 h-3.5" />
                           )}
@@ -299,38 +312,32 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                       </div>
                     </div>
                   );
-                })}
-                <div ref={messagesEndRef} />
-              </div>
+                })
+              )}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Message Input */}
-            <div className="p-4 border-t border-[#e5e7eb] bg-white">
-              <div className="flex items-end gap-2">
+            <div className="p-3 sm:p-4 bg-white border-t border-blue-100">
+              <div className="flex items-end gap-2 sm:gap-3">
                 <div className="flex-1 relative">
                   <textarea
+                    placeholder="Type a message..."
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Type a message..."
                     rows={1}
-                    className="w-full py-3 px-4 pr-12 border border-[#d1d5db] rounded-2xl text-sm resize-none focus:outline-none focus:border-[#6366f1] focus:ring-[3px] focus:ring-[#6366f1]/10 transition-all max-h-32"
+                    className="w-full py-3 px-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm resize-none focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all max-h-32 overflow-y-auto"
                     style={{ minHeight: '48px' }}
                   />
-                  <button 
-                    className="absolute right-3 bottom-3 p-1 text-[#9ca3af] hover:text-[#6b7280] transition-colors"
-                    title="Attach file"
-                  >
-                    <Paperclip className="w-5 h-5" />
-                  </button>
                 </div>
                 <button
                   onClick={handleSendMessage}
                   disabled={!messageInput.trim() || sending}
-                  className={`p-3 rounded-full transition-all ${
+                  className={`p-3 rounded-full transition-all active:scale-95 shadow-md ${
                     messageInput.trim() && !sending
-                      ? 'bg-[#667eea] text-white hover:bg-[#5a6fd6]'
-                      : 'bg-[#e5e7eb] text-[#9ca3af] cursor-not-allowed'
+                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:shadow-lg'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                   }`}
                 >
                   <Send className="w-5 h-5" />
@@ -339,13 +346,16 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-[#f9fafb]">
+          /* No conversation selected - Desktop only */
+          <div className="hidden md:flex flex-1 items-center justify-center">
             <div className="text-center">
-              <div className="w-20 h-20 rounded-full bg-[#f3f4f6] flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="w-10 h-10 text-[#9ca3af]" />
+              <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="w-12 h-12 text-blue-400" />
               </div>
-              <h3 className="text-lg font-semibold text-[#111827] mb-2">Select a conversation</h3>
-              <p className="text-sm text-[#6b7280]">Choose a conversation from the list to start messaging</p>
+              <h3 className="text-xl font-semibold text-slate-700 mb-2">Select a conversation</h3>
+              <p className="text-slate-400 text-sm max-w-xs mx-auto">
+                Choose a conversation from the list to view and reply to messages
+              </p>
             </div>
           </div>
         )}
@@ -353,5 +363,3 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
     </div>
   );
 }
-
-export default FirebaseMessages;
