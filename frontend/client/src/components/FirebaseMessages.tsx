@@ -446,10 +446,10 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               </div>
             </div>
 
-            {/* Messages Area - Scrollable middle section with proper padding */}
-            <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-3 space-y-2 bg-slate-100/50 min-h-0">
+            {/* Messages Area - Scrollable middle section with WhatsApp-like spacing */}
+            <div className="flex-1 overflow-y-auto py-4 space-y-2.5 bg-slate-100/50 min-h-0">
               {messages.length === 0 ? (
-                <div className="h-full flex items-center justify-center">
+                <div className="h-full flex items-center justify-center px-4">
                   <div className="text-center">
                     <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-3">
                       <MessageSquare className="w-8 h-8 text-slate-500" />
@@ -465,13 +465,13 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                   return (
                     <div 
                       key={msg.id} 
-                      className={`flex ${isOwn ? 'justify-end pl-8' : 'justify-start pr-8'}`}
+                      className={`flex px-4 ${isOwn ? 'justify-end' : 'justify-start'}`}
                     >
                       <div 
-                        className={`relative max-w-[80%] sm:max-w-[70%] px-3.5 py-2.5 rounded-2xl shadow-sm ${
+                        className={`relative max-w-[75%] sm:max-w-[65%] px-4 py-2.5 rounded-2xl shadow-sm ${
                           isOwn 
-                            ? 'rounded-br-md' 
-                            : 'rounded-bl-md'
+                            ? 'rounded-br-sm ml-12' 
+                            : 'rounded-bl-sm mr-12'
                         }`}
                         style={{
                           backgroundColor: isOwn ? '#3b82f6' : '#334155',
