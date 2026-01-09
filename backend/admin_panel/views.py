@@ -730,51 +730,128 @@ def application_status(request, app_id):
 @login_required(login_url='/admin-panel/login/')
 @user_passes_test(is_admin, login_url='/admin-panel/login/')
 def messages(request):
-    """Messages/Chat view"""
-    from core.models import Conversation, ChatMessage
-    from jobs.models import Company, Job
-    from django.db.models import Max, Q, Prefetch
+    """Messages/Chat view - reads from frontend MySQL database"""
+    import mysql.connector
     
-    # Get all conversations for the current user
-    conversations = Conversation.objects.filter(
-        Q(participant1=request.user) | Q(participant2=request.user)
-    ).annotate(
-        last_message_time=Max('chat_messages__created_at')
-    ).select_related('participant1', 'participant2').prefetch_related(
-        Prefetch('chat_messages', queryset=ChatMessage.objects.order_by('-created_at'))
-    ).order_by('-last_message_time')
+    def get_mysql_connection():
+        return mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='',
+            database='talent_horizon'
+        )
     
-    # Format conversations for template
     formatted_conversations = []
-    for conv in conversations:
-        other_user = conv.get_other_participant(request.user)
-        last_message = conv.get_last_message()
-        unread_count = conv.get_unread_count(request.user)
+    
+    try:
+        conn = get_mysql_connection()
+        cursor = conn.cursor(dictionary=True)
         
-        # Get custom display name and position if available
-        display_name = conv.get_display_name(request.user)
-        sender_position = conv.get_sender_position(request.user)
+        # Get the admin's frontend MySQL user ID by email
+        cursor.execute("SELECT id FROM users WHERE email = %s", (request.user.email,))
+        admin_user = cursor.fetchone()
+        admin_frontend_id = admin_user['id'] if admin_user else request.user.id
         
-        # Check if the other user is verified (user level or company level)
-        is_verified = other_user.is_verified
-        if other_user.role == 'employer':
-            # Check if employer's company is verified
-            employer_company = Job.objects.filter(posted_by=other_user).select_related('company').first()
-            if employer_company and employer_company.company.is_verified:
-                is_verified = True
+        # Get all root messages (conversations) where admin is sender or recipient
+        # Root messages are those without a parentId
+        cursor.execute("""
+            SELECT 
+                m.id,
+                m.senderId,
+                m.senderName,
+                m.senderTitle,
+                m.recipientId,
+                m.subject,
+                m.content,
+                m.isRead,
+                m.createdAt,
+                m.jobId,
+                m.companyId,
+                j.title as job_title,
+                c.name as company_name,
+                c.verified as company_verified,
+                u.name as recipient_name,
+                u.email as recipient_email
+            FROM messages m
+            LEFT JOIN jobs j ON m.jobId = j.id
+            LEFT JOIN companies c ON m.companyId = c.id
+            LEFT JOIN users u ON m.recipientId = u.id
+            WHERE m.parentId IS NULL
+            AND (m.senderId = %s OR m.recipientId = %s)
+            ORDER BY m.createdAt DESC
+        """, (admin_frontend_id, admin_frontend_id))
         
-        formatted_conversations.append({
-            'id': conv.id,
-            'other_user': other_user,
-            'display_name': display_name,
-            'sender_position': sender_position,
-            'is_verified': is_verified,
-            'metadata': conv.metadata or {},
-            'last_message': last_message.content if last_message else 'No messages yet',
-            'last_message_time': last_message.created_at if last_message else conv.created_at,
-            'unread_count': unread_count,
-            'is_online': False,  # Will implement online status later
-        })
+        root_messages = cursor.fetchall()
+        
+        for msg in root_messages:
+            # Get reply count and last message for this conversation
+            cursor.execute("""
+                SELECT id, senderName, content, createdAt 
+                FROM messages 
+                WHERE parentId = %s 
+                ORDER BY createdAt DESC 
+                LIMIT 1
+            """, (msg['id'],))
+            last_reply = cursor.fetchone()
+            
+            cursor.execute("SELECT COUNT(*) as count FROM messages WHERE parentId = %s", (msg['id'],))
+            reply_count = cursor.fetchone()['count']
+            
+            # Count unread messages in this thread
+            cursor.execute("""
+                SELECT COUNT(*) as count FROM messages 
+                WHERE (id = %s OR parentId = %s) 
+                AND recipientId = %s 
+                AND isRead = FALSE
+            """, (msg['id'], msg['id'], admin_frontend_id))
+            unread_count = cursor.fetchone()['count']
+            
+            # Determine the other user in the conversation
+            if msg['senderId'] == admin_frontend_id:
+                other_user_name = msg['recipient_name'] or 'User'
+                other_user_email = msg['recipient_email']
+            else:
+                other_user_name = msg['senderName'] or 'User'
+                other_user_email = None
+            
+            # Get last message content
+            if last_reply:
+                last_message_content = last_reply['content']
+                last_message_time = last_reply['createdAt']
+                last_sender = last_reply['senderName']
+            else:
+                last_message_content = msg['content']
+                last_message_time = msg['createdAt']
+                last_sender = msg['senderName']
+            
+            formatted_conversations.append({
+                'id': msg['id'],
+                'other_user': {
+                    'name': other_user_name,
+                    'email': other_user_email,
+                    'first_name': other_user_name.split()[0] if other_user_name else 'U',
+                    'last_name': other_user_name.split()[-1] if other_user_name and len(other_user_name.split()) > 1 else '',
+                },
+                'display_name': other_user_name,
+                'sender_position': msg['senderTitle'],
+                'is_verified': msg['company_verified'] if msg['company_verified'] else False,
+                'metadata': {
+                    'company_name': msg['company_name'],
+                    'job_title': msg['job_title'],
+                },
+                'subject': msg['subject'],
+                'last_message': f"{last_sender}: {last_message_content[:50]}..." if reply_count > 0 else last_message_content[:80] + '...',
+                'last_message_time': last_message_time,
+                'unread_count': unread_count,
+                'reply_count': reply_count,
+                'is_online': False,
+            })
+        
+        cursor.close()
+        conn.close()
+        
+    except Exception as e:
+        print(f"Error loading messages: {e}")
     
     context = {
         'conversations': formatted_conversations,

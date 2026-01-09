@@ -7,7 +7,7 @@ import { useParams, Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { 
   ArrowLeft, Upload, FileText, X, CheckCircle2, 
-  Briefcase, Building2, MapPin, Loader2
+  Briefcase, Building2, MapPin, Loader2, BadgeCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -241,24 +241,56 @@ export default function JobApply() {
             className="bg-white rounded-xl p-6 shadow-sm mb-6"
           >
             <div className="flex items-start gap-4">
-              <div className="w-14 h-14 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-16 h-16 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0 relative overflow-hidden">
                 {company?.logoUrl ? (
-                  <img src={company.logoUrl} alt={company.name} className="w-10 h-10 object-contain" />
+                  <img src={company.logoUrl} alt={company.name} className="w-12 h-12 object-contain" />
                 ) : (
-                  <Building2 className="w-7 h-7 text-slate-400" />
+                  <Building2 className="w-8 h-8 text-slate-400" />
+                )}
+                {company?.verified && (
+                  <div className="absolute -bottom-1 -right-1 bg-gradient-to-br from-white to-blue-50 rounded-full p-1.5 shadow-lg">
+                    <BadgeCheck className="w-5 h-5 text-blue-500" />
+                  </div>
                 )}
               </div>
-              <div>
+              <div className="flex-1">
                 <h1 className="font-display text-xl font-bold text-navy mb-1">
                   Apply for {job?.title}
                 </h1>
-                <p className="text-slate-600">{company?.name}</p>
-                <div className="flex items-center gap-2 mt-2 text-sm text-slate-500">
-                  <MapPin className="w-4 h-4" />
-                  <span>{job?.location}</span>
+                <div className="flex items-center gap-2">
+                  <p className="text-slate-600 font-medium">{company?.name}</p>
+                  {company?.verified && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-50/90 to-blue-100/70 text-blue-600 text-sm font-medium rounded-full shadow-sm">
+                      <BadgeCheck className="w-4 h-4" />
+                      Verified Employer
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-4 mt-3 text-sm text-slate-500">
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4" />
+                    {job?.location}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Briefcase className="w-4 h-4" />
+                    {job?.jobType?.replace('-', ' ') || 'Full-time'}
+                  </span>
                 </div>
               </div>
             </div>
+            {company?.verified && (
+              <div className="mt-4 pt-4 border-t border-slate-100/80">
+                <div className="flex items-start gap-3 p-3 bg-gradient-to-r from-blue-50/50 to-transparent rounded-lg">
+                  <div className="p-1.5 bg-gradient-to-br from-blue-100/80 to-blue-50/60 rounded-full">
+                    <BadgeCheck className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-700 text-sm">Verified Employer</p>
+                    <p className="text-slate-500 text-sm">This company has been verified by Talent Horizon. Your application is secure.</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </motion.div>
 
           {/* Application Form */}

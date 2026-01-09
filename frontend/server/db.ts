@@ -1,4 +1,4 @@
-import { eq, and, like, or, desc, asc, sql, gte, lte, inArray } from "drizzle-orm";
+import { eq, and, like, or, desc, asc, sql, gte, lte, inArray, isNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, users, 
@@ -10,7 +10,8 @@ import {
   jobAlerts, InsertJobAlert,
   workExperience, InsertWorkExperience,
   education, InsertEducation,
-  userSkills, InsertUserSkill
+  userSkills, InsertUserSkill,
+  messages, InsertMessage
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -272,8 +273,39 @@ export async function searchJobs(params: JobSearchParams = {}) {
   }
 
   const jobResults = await db
-    .select()
+    .select({
+      id: jobs.id,
+      companyId: jobs.companyId,
+      title: jobs.title,
+      slug: jobs.slug,
+      description: jobs.description,
+      requirements: jobs.requirements,
+      benefits: jobs.benefits,
+      department: jobs.department,
+      location: jobs.location,
+      locationType: jobs.locationType,
+      jobType: jobs.jobType,
+      experienceLevel: jobs.experienceLevel,
+      salaryMin: jobs.salaryMin,
+      salaryMax: jobs.salaryMax,
+      salaryType: jobs.salaryType,
+      showSalary: jobs.showSalary,
+      skills: jobs.skills,
+      featured: jobs.featured,
+      urgent: jobs.urgent,
+      status: jobs.status,
+      applicationDeadline: jobs.applicationDeadline,
+      viewCount: jobs.viewCount,
+      applicationCount: jobs.applicationCount,
+      postedAt: jobs.postedAt,
+      createdAt: jobs.createdAt,
+      updatedAt: jobs.updatedAt,
+      companyName: companies.name,
+      companyLogo: companies.logoUrl,
+      companyVerified: companies.verified,
+    })
     .from(jobs)
+    .leftJoin(companies, eq(jobs.companyId, companies.id))
     .where(whereClause)
     .orderBy(desc(jobs.featured), orderBy)
     .limit(params.limit || 20)
@@ -789,4 +821,173 @@ export async function seedInitialData() {
   }
 
   console.log("[Database] Seed data inserted successfully");
+}
+
+
+// ============ MESSAGE QUERIES ============
+
+export async function getUserMessages(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  // Only get root messages (conversations) - messages with no parentId
+  // These are the original messages that start a conversation thread
+  const msgs = await db.select().from(messages)
+    .where(and(
+      or(eq(messages.recipientId, userId), eq(messages.senderId, userId)),
+      eq(messages.isArchived, false),
+      isNull(messages.parentId)  // Only root messages, not replies
+    ))
+    .orderBy(desc(messages.createdAt));
+  
+  // Enrich with job and company info, and get reply count
+  const enriched = await Promise.all(msgs.map(async (msg) => {
+    let job = null;
+    let company = null;
+    if (msg.jobId) {
+      job = await getJobById(msg.jobId);
+      if (job) {
+        company = await getCompanyById(job.companyId);
+      }
+    } else if (msg.companyId) {
+      company = await getCompanyById(msg.companyId);
+    }
+    
+    // Get all replies to this conversation
+    const replies = await db.select().from(messages)
+      .where(eq(messages.parentId, msg.id))
+      .orderBy(asc(messages.createdAt));
+    
+    // Get the latest message in the thread (either root or last reply)
+    const latestReply = replies.length > 0 ? replies[replies.length - 1] : null;
+    const lastMessage = latestReply || msg;
+    
+    // Check if there are any unread messages in the thread for this user
+    const hasUnread = msg.recipientId === userId && !msg.isRead ||
+      replies.some(r => r.recipientId === userId && !r.isRead);
+    
+    return { 
+      ...msg, 
+      job, 
+      company, 
+      replies,
+      replyCount: replies.length,
+      lastMessageContent: lastMessage.content,
+      lastMessageTime: lastMessage.createdAt,
+      lastMessageSender: lastMessage.senderName,
+      isRead: !hasUnread
+    };
+  }));
+  
+  // Sort by last message time (most recent first)
+  enriched.sort((a, b) => {
+    const timeA = new Date(a.lastMessageTime || a.createdAt).getTime();
+    const timeB = new Date(b.lastMessageTime || b.createdAt).getTime();
+    return timeB - timeA;
+  });
+  
+  return enriched;
+}
+
+export async function getMessageById(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  // Allow both sender and recipient to view the message
+  const result = await db.select().from(messages)
+    .where(and(
+      eq(messages.id, id),
+      or(eq(messages.recipientId, userId), eq(messages.senderId, userId))
+    ))
+    .limit(1);
+  
+  if (result.length === 0) return undefined;
+  
+  const msg = result[0];
+  let job = null;
+  let company = null;
+  if (msg.jobId) {
+    job = await getJobById(msg.jobId);
+    if (job) {
+      company = await getCompanyById(job.companyId);
+    }
+  } else if (msg.companyId) {
+    company = await getCompanyById(msg.companyId);
+  }
+  
+  // Get thread replies in chronological order
+  const replies = await db.select().from(messages)
+    .where(eq(messages.parentId, id))
+    .orderBy(asc(messages.createdAt));
+  
+  return { ...msg, job, company, replies };
+}
+
+export async function markMessageAsRead(id: number, userId: number) {
+  console.log('[DB markMessageAsRead] Starting - id:', id, 'userId:', userId);
+  const db = await getDb();
+  if (!db) {
+    console.log('[DB markMessageAsRead] No database connection!');
+    return;
+  }
+  // Mark the root message as read
+  console.log('[DB markMessageAsRead] Marking root message as read');
+  await db.update(messages).set({ isRead: true })
+    .where(and(eq(messages.id, id), eq(messages.recipientId, userId)));
+  // Also mark all replies in this thread as read
+  console.log('[DB markMessageAsRead] Marking all replies as read');
+  await db.update(messages).set({ isRead: true })
+    .where(and(eq(messages.parentId, id), eq(messages.recipientId, userId)));
+  console.log('[DB markMessageAsRead] Completed');
+}
+
+export async function getUnreadMessageCount(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  const [result] = await db.select({ count: sql<number>`count(*)` })
+    .from(messages)
+    .where(and(eq(messages.recipientId, userId), eq(messages.isRead, false), eq(messages.isArchived, false)));
+  return result?.count || 0;
+}
+
+export async function createMessage(data: InsertMessage) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.insert(messages).values(data);
+  return result[0].insertId;
+}
+
+export async function replyToMessage(parentId: number, userId: number, content: string): Promise<{ id: number; recipientId: number } | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  
+  // Get the parent message
+  const [parent] = await db.select().from(messages).where(eq(messages.id, parentId)).limit(1);
+  if (!parent) return undefined;
+  
+  // Determine the recipient - if user is the original sender, send to original recipient, otherwise send to original sender
+  const recipientId = parent.senderId === userId ? parent.recipientId : parent.senderId;
+  
+  // Create reply
+  const user = await getUserById(userId);
+  const result = await db.insert(messages).values({
+    senderId: userId,
+    senderName: user?.name || 'User',
+    recipientId,
+    applicationId: parent.applicationId,
+    jobId: parent.jobId,
+    companyId: parent.companyId,
+    subject: `Re: ${parent.subject || 'Message'}`,
+    content,
+    parentId,
+  });
+  
+  return { id: result[0].insertId, recipientId };
+}
+
+export async function archiveMessage(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(messages).set({ isArchived: true })
+    .where(and(eq(messages.id, id), eq(messages.recipientId, userId)));
 }

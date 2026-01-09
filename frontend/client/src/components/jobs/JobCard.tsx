@@ -1,11 +1,42 @@
 import { Link } from "wouter";
-import { MapPin, Clock, Building2, DollarSign, Bookmark, Briefcase } from "lucide-react";
+import { MapPin, Clock, Building2, DollarSign, Bookmark, Briefcase, BadgeCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { Job } from "../../../../drizzle/schema";
+
+interface JobWithCompany {
+  id: number;
+  companyId: number;
+  title: string;
+  slug: string;
+  description: string;
+  requirements?: string | null;
+  benefits?: string | null;
+  department?: string | null;
+  location: string;
+  locationType?: "remote" | "onsite" | "hybrid" | null;
+  jobType?: "full-time" | "part-time" | "contract" | "internship" | "temporary" | null;
+  experienceLevel?: "entry" | "mid" | "senior" | "executive" | null;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
+  salaryType?: "hourly" | "annual" | null;
+  showSalary?: boolean | null;
+  skills?: string[] | null;
+  featured?: boolean | null;
+  urgent?: boolean | null;
+  status?: string | null;
+  applicationDeadline?: Date | null;
+  viewCount?: number | null;
+  applicationCount?: number | null;
+  postedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  companyName?: string | null;
+  companyLogo?: string | null;
+  companyVerified?: boolean | null;
+}
 
 interface JobCardProps {
-  job: Job;
+  job: JobWithCompany;
   showSaveButton?: boolean;
   onSave?: (jobId: number) => void;
   isSaved?: boolean;
@@ -59,8 +90,12 @@ export default function JobCard({ job, showSaveButton = false, onSave, isSaved =
     <div className="group bg-white rounded-xl p-6 border border-slate-100 hover:border-orange/30 hover:shadow-lg transition-all duration-300">
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Building2 className="w-6 h-6 text-slate-400" />
+          <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+            {job.companyLogo ? (
+              <img src={job.companyLogo} alt={job.companyName || ''} className="w-full h-full object-cover" />
+            ) : (
+              <Building2 className="w-6 h-6 text-slate-400" />
+            )}
           </div>
           <div>
             <Link href={`/jobs/${job.id}`}>
@@ -68,7 +103,14 @@ export default function JobCard({ job, showSaveButton = false, onSave, isSaved =
                 {job.title}
               </h3>
             </Link>
-            <p className="text-slate-500 text-sm">{job.department || "General"}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-slate-500 text-sm">{job.companyName || job.department || "Company"}</p>
+              {job.companyVerified && (
+                <span className="inline-flex items-center" title="Verified Company">
+                  <BadgeCheck className="w-5 h-5 text-blue-500" />
+                </span>
+              )}
+            </div>
           </div>
         </div>
         {showSaveButton && (
@@ -86,6 +128,12 @@ export default function JobCard({ job, showSaveButton = false, onSave, isSaved =
       </div>
 
       <div className="flex flex-wrap gap-2 mb-4">
+        {job.companyVerified && (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-50/80 to-blue-100/60 text-blue-600 text-xs font-medium rounded-full backdrop-blur-sm">
+            <BadgeCheck className="w-4 h-4" />
+            Verified Employer
+          </span>
+        )}
         {job.jobType && (
           <Badge variant="secondary" className={jobTypeColors[job.jobType] || "bg-slate-100"}>
             {job.jobType.replace("-", " ")}

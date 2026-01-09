@@ -210,3 +210,28 @@ export const userSkills = mysqlTable("user_skills", {
 
 export type UserSkill = typeof userSkills.$inferSelect;
 export type InsertUserSkill = typeof userSkills.$inferInsert;
+
+
+/**
+ * Messages table for user-to-user and admin-to-user messaging
+ */
+export const messages = mysqlTable("messages", {
+  id: int("id").autoincrement().primaryKey(),
+  senderId: int("senderId").notNull(),
+  senderName: varchar("senderName", { length: 255 }),
+  senderTitle: varchar("senderTitle", { length: 255 }),
+  senderAvatarUrl: varchar("senderAvatarUrl", { length: 500 }),
+  recipientId: int("recipientId").notNull(),
+  applicationId: int("applicationId"), // Optional link to job application
+  jobId: int("jobId"), // Optional link to job
+  companyId: int("companyId"), // Optional link to company
+  subject: varchar("subject", { length: 500 }),
+  content: text("content").notNull(),
+  isRead: boolean("isRead").default(false),
+  isArchived: boolean("isArchived").default(false),
+  parentId: int("parentId"), // For threaded replies
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = typeof messages.$inferInsert;

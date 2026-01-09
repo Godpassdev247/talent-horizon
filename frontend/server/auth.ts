@@ -6,7 +6,8 @@
 import { db } from "./db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
-import { sign, verify } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
+const { sign, verify } = jwt;
 import { createHash, randomBytes } from "crypto";
 
 // Simple password hashing using crypto (no external dependencies)

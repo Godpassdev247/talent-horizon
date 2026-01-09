@@ -32,8 +32,28 @@ export default function Login() {
     setIsLoading(true);
     
     try {
-      // Call Django backend for authentication
-      const response = await fetch('http://localhost:8000/api/auth/login/', {
+      // First try frontend tRPC auth to get the frontend user ID
+      let frontendToken = null;
+      let frontendUserId = null;
+      try {
+        const frontendResponse = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+        const frontendData = await frontendResponse.json();
+        if (frontendResponse.ok && frontendData.token) {
+          frontendToken = frontendData.token;
+          frontendUserId = frontendData.user?.id;
+        }
+      } catch (err) {
+        console.log('Frontend auth not available, trying Django');
+      }
+      
+      // Also call Django backend for authentication
+      const response = await fetch('https://8000-igaq82edlqb5u4iaikqp1-f81208bb.us2.manus.computer/api/auth/login/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,10 +64,23 @@ export default function Login() {
       
       const data = await response.json();
       
-      if (response.ok && data.user) {
+      if ((response.ok && data.user) || frontendToken) {
         // Store user info in localStorage
-        localStorage.setItem('user', JSON.stringify(data.user));
-        // Django returns tokens.access, not token
+        const userToStore = data.user || { email: formData.email };
+        // If we got a frontend user ID, use that for applications
+        if (frontendUserId) {
+          userToStore.frontendId = frontendUserId;
+        }
+        localStorage.setItem('user', JSON.stringify(userToStore));
+        
+        // Store frontend token for tRPC calls - this is critical for messages
+        if (frontendToken) {
+          localStorage.setItem('frontendToken', frontendToken);
+          console.log('Frontend token stored successfully');
+        } else {
+          console.log('No frontend token received - messages may not work');
+        }
+        // Also store Django token for Django API calls
         if (data.tokens?.access) {
           localStorage.setItem('token', data.tokens.access);
         }
@@ -55,10 +88,10 @@ export default function Login() {
         toast.success("Login successful! Redirecting...");
         
         // Redirect based on user role
-        if (data.user.role === 'admin') {
+        if (data.user?.role === 'admin') {
           // Admin goes to Django admin panel
           setTimeout(() => {
-            window.location.href = 'http://localhost:8000/admin-panel/';
+            window.location.href = 'https://8000-igaq82edlqb5u4iaikqp1-f81208bb.us2.manus.computer/admin-panel/';
           }, 500);
         } else {
           // Other users stay on React frontend

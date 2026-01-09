@@ -5,6 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import * as db from "./db";
+import { broadcastNewMessage } from "./websocket";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
 
@@ -395,6 +396,66 @@ export const appRouter = router({
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
         await db.deleteJobAlert(input.id, ctx.user.id);
+        return { success: true };
+      }),
+  }),
+
+  messages: router({
+    getAll: protectedProcedure.query(async ({ ctx }) => {
+      return db.getUserMessages(ctx.user.id);
+    }),
+
+    getById: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const message = await db.getMessageById(input.id, ctx.user.id);
+        if (!message) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Message not found" });
+        }
+        return message;
+      }),
+
+    markAsRead: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        console.log('[markAsRead] Called with id:', input.id, 'userId:', ctx.user.id);
+        await db.markMessageAsRead(input.id, ctx.user.id);
+        console.log('[markAsRead] Completed successfully');
+        return { success: true };
+      }),
+
+    getUnreadCount: protectedProcedure.query(async ({ ctx }) => {
+      return db.getUnreadMessageCount(ctx.user.id);
+    }),
+
+    reply: protectedProcedure
+      .input(z.object({
+        parentId: z.number(),
+        content: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const result = await db.replyToMessage(input.parentId, ctx.user.id, input.content);
+        
+        // Broadcast the new message via WebSocket
+        if (result.recipientId) {
+          broadcastNewMessage(ctx.user.id, result.recipientId, {
+            id: result.id,
+            parentId: input.parentId,
+            senderId: ctx.user.id,
+            recipientId: result.recipientId,
+            content: input.content,
+            createdAt: new Date().toISOString(),
+            senderName: ctx.user.name || 'User',
+          });
+        }
+        
+        return { id: result.id, success: true };
+      }),
+
+    archive: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await db.archiveMessage(input.id, ctx.user.id);
         return { success: true };
       }),
   }),

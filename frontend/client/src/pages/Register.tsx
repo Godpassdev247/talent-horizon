@@ -41,11 +41,34 @@ export default function Register() {
     
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsLoading(false);
-    toast.success("Account created successfully! Please check your email to verify.");
+    try {
+      const response = await fetch('https://8000-igaq82edlqb5u4iaikqp1-f81208bb.us2.manus.computer/api/auth/register/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast.success("Account created successfully! You can now login.");
+        window.location.href = '/login';
+      } else {
+        toast.error(data.error || data.email?.[0] || "Registration failed");
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      toast.error("Registration failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const passwordRequirements = [

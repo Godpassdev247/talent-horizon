@@ -349,6 +349,44 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Mobile App-like experience - prevent horizontal scroll */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
+  position: relative;
+}
+
+/* Safe area padding for notched devices */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-pt {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Touch-friendly tap targets */
+@media (max-width: 768px) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Prevent text selection on mobile for app-like feel */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Momentum scrolling for iOS */
+.scroll-touch {
+  -webkit-overflow-scrolling: touch;
+}
+
 /* Selection color */
 ::selection {
   background-color: oklch(0.68 0.19 35 / 0.3);
