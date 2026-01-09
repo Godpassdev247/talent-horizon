@@ -7,7 +7,7 @@
 import { useState, useEffect, useRef } from 'react';
 // v2 - Updated bubble colors: dark for received, blue for sent
 import { 
-  Search, Send, ArrowLeft, MessageSquare, Check, CheckCheck
+  Search, Send, ArrowLeft, MessageSquare, Check, CheckCheck, BadgeCheck
 } from 'lucide-react';
 import { useFirebaseMessaging } from '../hooks/useFirebaseMessaging';
 import { FirebaseConversation } from '../lib/firebase';
@@ -261,12 +261,23 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                 {getOtherParticipant(selectedConversation).name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-slate-800 truncate">
-                  {getOtherParticipant(selectedConversation).name}
-                </h3>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-semibold text-slate-800 truncate">
+                    {getOtherParticipant(selectedConversation).name}
+                  </h3>
+                  {getOtherParticipant(selectedConversation).isVerified && (
+                    <BadgeCheck className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                  )}
+                </div>
                 <p className="text-xs text-amber-600 font-medium">
-                  {getOtherParticipant(selectedConversation).role === 'admin' ? 'Recruiter' : 'Job Seeker'}
+                  {getOtherParticipant(selectedConversation).position || 
+                   (getOtherParticipant(selectedConversation).role === 'admin' ? 'Recruiter' : 'Job Seeker')}
                 </p>
+                {(getOtherParticipant(selectedConversation).companyName || getOtherParticipant(selectedConversation).companyAddress) && (
+                  <p className="text-xs text-slate-500 truncate">
+                    {[getOtherParticipant(selectedConversation).companyName, getOtherParticipant(selectedConversation).companyAddress].filter(Boolean).join(', ')}
+                  </p>
+                )}
               </div>
             </div>
 

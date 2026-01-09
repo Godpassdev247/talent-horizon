@@ -46,6 +46,10 @@ export interface FirebaseConversation {
     name: string;
     email: string;
     role: 'user' | 'admin';
+    position?: string;
+    companyName?: string;
+    companyAddress?: string;
+    isVerified?: boolean;
   }[];
   lastMessage: string;
   lastMessageTime: Timestamp;
