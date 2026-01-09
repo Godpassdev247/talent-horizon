@@ -446,10 +446,13 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               </div>
             </div>
 
-            {/* Messages Area - WhatsApp/Telegram style layout */}
-            <div className="flex-1 overflow-y-auto py-3 space-y-1.5 bg-slate-100/50 min-h-0">
+            {/* Messages Area - Clean WhatsApp/Telegram style */}
+            <div 
+              className="flex-1 overflow-y-auto bg-slate-100/50 min-h-0"
+              style={{ padding: '16px 0' }}
+            >
               {messages.length === 0 ? (
-                <div className="h-full flex items-center justify-center px-4">
+                <div className="h-full flex items-center justify-center" style={{ padding: '0 16px' }}>
                   <div className="text-center">
                     <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-3">
                       <MessageSquare className="w-8 h-8 text-slate-500" />
@@ -458,58 +461,65 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                   </div>
                 </div>
               ) : (
-                messages.map((msg) => {
-                  const isOwn = msg.senderId === currentUser?.id;
-                  const attachments = msg.attachments || [];
-                  
-                  return (
-                    <div 
-                      key={msg.id} 
-                      className="mx-3 sm:mx-4"
-                      style={{
-                        display: 'flex',
-                        justifyContent: isOwn ? 'flex-end' : 'flex-start'
-                      }}
-                    >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {messages.map((msg) => {
+                    const isOwn = msg.senderId === currentUser?.id;
+                    const attachments = msg.attachments || [];
+                    
+                    return (
                       <div 
-                        className={`relative px-3 py-2 rounded-2xl shadow-sm ${
-                          isOwn 
-                            ? 'rounded-br-sm' 
-                            : 'rounded-bl-sm'
-                        }`}
+                        key={msg.id} 
                         style={{
-                          backgroundColor: isOwn ? '#3b82f6' : '#334155',
-                          color: 'white',
-                          maxWidth: '70%',
-                          marginLeft: isOwn ? '20%' : '0',
-                          marginRight: isOwn ? '0' : '20%'
+                          display: 'flex',
+                          justifyContent: isOwn ? 'flex-end' : 'flex-start',
+                          paddingLeft: '16px',
+                          paddingRight: '16px'
                         }}
                       >
-                        {msg.content && msg.content !== '📎 Attachment' && (
-                          <p className="text-[15px] leading-relaxed break-words whitespace-pre-wrap">
-                            {msg.content}
-                          </p>
-                        )}
-                        {/* Render attachments */}
-                        {attachments.map((url, idx) => (
-                          <div key={idx}>
-                            {renderAttachment(url, isOwn)}
-                          </div>
-                        ))}
-                        <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? 'text-blue-100' : 'text-slate-300'}`}>
-                          <span className="text-[11px]">
-                            {formatMessageTime(msg.timestamp)}
-                          </span>
-                          {isOwn && (
-                            msg.isRead 
-                              ? <CheckCheck className="w-3.5 h-3.5" />
-                              : <Check className="w-3.5 h-3.5" />
+                        <div 
+                          style={{
+                            backgroundColor: isOwn ? '#3b82f6' : '#334155',
+                            color: 'white',
+                            padding: '10px 14px',
+                            borderRadius: isOwn ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                            maxWidth: 'min(70%, 320px)',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                            wordBreak: 'break-word'
+                          }}
+                        >
+                          {msg.content && msg.content !== '📎 Attachment' && (
+                            <p style={{ fontSize: '15px', lineHeight: '1.4', margin: 0 }}>
+                              {msg.content}
+                            </p>
                           )}
+                          {/* Render attachments */}
+                          {attachments.map((url, idx) => (
+                            <div key={idx}>
+                              {renderAttachment(url, isOwn)}
+                            </div>
+                          ))}
+                          <div style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'flex-end', 
+                            gap: '4px', 
+                            marginTop: '4px',
+                            opacity: 0.7
+                          }}>
+                            <span style={{ fontSize: '11px' }}>
+                              {formatMessageTime(msg.timestamp)}
+                            </span>
+                            {isOwn && (
+                              msg.isRead 
+                                ? <CheckCheck className="w-3.5 h-3.5" />
+                                : <Check className="w-3.5 h-3.5" />
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })
+                    );
+                  })}
+                </div>
               )}
               <div ref={messagesEndRef} />
             </div>
