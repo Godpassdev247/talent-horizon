@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FirebaseMessages } from "@/components/FirebaseMessages";
+import FirebaseMessages from "@/components/FirebaseMessages";
 
 // Sidebar navigation items
 const sidebarItems = [
