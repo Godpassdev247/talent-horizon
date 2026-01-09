@@ -232,7 +232,7 @@
     
     .message-bubble {
         max-width: 70%;
-        margin-bottom: 12px;
+        margin-bottom: 6px;
         display: flex;
         flex-direction: column;
     }
@@ -343,6 +343,191 @@
     .send-btn svg {
         width: 20px;
         height: 20px;
+    }
+    
+    /* File Attachment Button */
+    .attach-btn {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #f1f5f9;
+        border: none;
+        color: #64748b;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+    
+    .attach-btn:hover {
+        background: #e2e8f0;
+        color: #475569;
+    }
+    
+    .attach-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+    
+    /* File Preview */
+    .file-preview-container {
+        padding: 8px 20px;
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .file-preview-item {
+        position: relative;
+        width: 64px;
+        height: 64px;
+    }
+    
+    .file-preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .file-preview-item .file-icon {
+        width: 100%;
+        height: 100%;
+        background: #e2e8f0;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .file-preview-remove {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        width: 20px;
+        height: 20px;
+        background: #ef4444;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    
+    .file-preview-item:hover .file-preview-remove {
+        opacity: 1;
+    }
+    
+    /* Message Attachments */
+    .message-attachment {
+        margin-top: 8px;
+        max-width: 250px;
+    }
+    
+    .message-attachment img {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+    
+    .message-attachment img:hover {
+        opacity: 0.9;
+    }
+    
+    .message-attachment video {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 8px;
+    }
+    
+    .message-attachment-file {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 8px;
+        text-decoration: none;
+        color: inherit;
+        transition: background 0.2s;
+    }
+    
+    .message-attachment-file:hover {
+        background: rgba(255,255,255,0.3);
+    }
+    
+    /* Image Preview Modal */
+    .image-preview-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.9);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+    
+    .image-preview-modal img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+    
+    .image-preview-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        border-radius: 50%;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+    
+    .image-preview-close:hover {
+        background: rgba(255,255,255,0.2);
+    }
+    
+    .image-preview-download {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        width: 40px;
+        height: 40px;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        border-radius: 50%;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+    
+    .image-preview-download:hover {
+        background: rgba(255,255,255,0.2);
     }
     
     /* Empty State */
@@ -761,10 +946,17 @@
                     <div class="spinner"></div>
                 </div>
             </div>
+            <div id="filePreviewArea" class="file-preview-container" style="display: none;"></div>
             <div class="chat-input-area">
                 <div class="chat-input-wrapper">
+                    <input type="file" id="fileInput" multiple accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" style="display: none;" onchange="handleFileSelect(event)">
+                    <button class="attach-btn" onclick="document.getElementById('fileInput').click()" title="Attach file">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                    </button>
                     <textarea id="messageInput" placeholder="Type a message..." rows="1" onkeypress="handleKeyPress(event)"></textarea>
-                    <button class="send-btn" onclick="sendMessage()">
+                    <button class="send-btn" onclick="sendMessage()" id="sendBtn">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
@@ -806,6 +998,88 @@
         });
     };
 
+    // Check if file is an image
+    function isImageFile(url) {
+        const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp', '.svg'];
+        const lowerUrl = url.toLowerCase();
+        return imageExtensions.some(ext => lowerUrl.includes(ext)) || url.startsWith('data:image/');
+    }
+
+    // Check if file is a video
+    function isVideoFile(url) {
+        const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi'];
+        const lowerUrl = url.toLowerCase();
+        return videoExtensions.some(ext => lowerUrl.includes(ext));
+    }
+
+    // Get file name from URL
+    function getFileName(url) {
+        try {
+            if (url.startsWith('data:')) return 'file';
+            const urlObj = new URL(url);
+            const pathname = urlObj.pathname;
+            const fileName = pathname.split('/').pop() || 'file';
+            return decodeURIComponent(fileName);
+        } catch {
+            return 'file';
+        }
+    }
+
+    // Render attachment HTML
+    function renderAttachment(url, isSent) {
+        if (isImageFile(url)) {
+            return `
+                <div class="message-attachment">
+                    <img src="${url}" alt="Attachment" onclick="showImagePreview('${url}')">
+                </div>
+            `;
+        }
+        
+        if (isVideoFile(url)) {
+            return `
+                <div class="message-attachment">
+                    <video src="${url}" controls></video>
+                </div>
+            `;
+        }
+        
+        // Generic file
+        return `
+            <div class="message-attachment">
+                <a href="${url}" target="_blank" class="message-attachment-file">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${getFileName(url)}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="margin-left: auto;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                </a>
+            </div>
+        `;
+    }
+
+    // Show image preview modal
+    window.showImagePreview = function(src) {
+        const modal = document.createElement('div');
+        modal.className = 'image-preview-modal';
+        modal.onclick = () => modal.remove();
+        modal.innerHTML = `
+            <button class="image-preview-close" onclick="event.stopPropagation(); this.parentElement.remove();">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <img src="${src}" alt="Preview" onclick="event.stopPropagation();">
+            <a href="${src}" download class="image-preview-download" onclick="event.stopPropagation();">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+            </a>
+        `;
+        document.body.appendChild(modal);
+    };
+
     // Render messages
     function renderMessages(messages) {
         const container = document.getElementById('chatMessages');
@@ -821,9 +1095,20 @@
         
         container.innerHTML = messages.map(msg => {
             const isSent = msg.senderId === currentUser.id;
+            const attachments = msg.attachments || [];
+            const showContent = msg.content && msg.content !== '📎 Attachment';
+            
+            let attachmentsHtml = '';
+            if (attachments.length > 0) {
+                attachmentsHtml = attachments.map(url => renderAttachment(url, isSent)).join('');
+            }
+            
             return `
                 <div class="message-bubble ${isSent ? 'sent' : 'received'}">
-                    <div class="message-content">${escapeHtml(msg.content)}</div>
+                    <div class="message-content">
+                        ${showContent ? escapeHtml(msg.content) : ''}
+                        ${attachmentsHtml}
+                    </div>
                     <div class="message-time">
                         ${formatTime(msg.timestamp)}
                         ${isSent ? (msg.isRead ? '✓✓' : '✓') : ''}
@@ -865,12 +1150,76 @@
         });
     }
 
+    // Selected files for upload
+    let selectedFiles = [];
+
+    // Handle file selection
+    window.handleFileSelect = function(event) {
+        const files = Array.from(event.target.files || []);
+        if (files.length > 0) {
+            selectedFiles = [...selectedFiles, ...files].slice(0, 5); // Max 5 files
+            renderFilePreview();
+        }
+        event.target.value = '';
+    };
+
+    // Render file preview
+    function renderFilePreview() {
+        const container = document.getElementById('filePreviewArea');
+        if (!container) return;
+        
+        if (selectedFiles.length === 0) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        container.style.display = 'flex';
+        container.innerHTML = selectedFiles.map((file, index) => {
+            if (file.type.startsWith('image/')) {
+                const url = URL.createObjectURL(file);
+                return `
+                    <div class="file-preview-item">
+                        <img src="${url}" alt="${file.name}">
+                        <button class="file-preview-remove" onclick="removeSelectedFile(${index})">×</button>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="file-preview-item">
+                        <div class="file-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="#64748b">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <button class="file-preview-remove" onclick="removeSelectedFile(${index})">×</button>
+                    </div>
+                `;
+            }
+        }).join('');
+    }
+
+    // Remove selected file
+    window.removeSelectedFile = function(index) {
+        selectedFiles = selectedFiles.filter((_, i) => i !== index);
+        renderFilePreview();
+    };
+
+    // Upload file and get data URL
+    async function uploadFile(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(file);
+        });
+    }
+
     // Send message
     window.sendMessage = async function() {
         const input = document.getElementById('messageInput');
         const content = input.value.trim();
+        const sendBtn = document.getElementById('sendBtn');
         
-        if (!content || !selectedConversationId) return;
+        if ((!content && selectedFiles.length === 0) || !selectedConversationId) return;
         
         const conv = conversations.find(c => c.id === selectedConversationId);
         if (!conv) return;
@@ -878,9 +1227,24 @@
         const recipient = conv.participants.find(p => p.id !== currentUser.id);
         if (!recipient) return;
         
+        // Show loading state
+        if (sendBtn) {
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<div style="width: 20px; height: 20px; border: 2px solid white; border-top-color: transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>';
+        }
+        
         input.value = '';
         
         try {
+            // Upload files first
+            const attachmentUrls = [];
+            for (const file of selectedFiles) {
+                const url = await uploadFile(file);
+                attachmentUrls.push(url);
+            }
+            
+            const messageContent = content || (attachmentUrls.length > 0 ? '📎 Attachment' : '');
+            
             // Add message
             await addDoc(collection(db, 'messages'), {
                 conversationId: selectedConversationId,
@@ -891,10 +1255,15 @@
                 recipientId: recipient.id,
                 recipientName: recipient.name,
                 recipientEmail: recipient.email,
-                content: content,
+                content: messageContent,
+                attachments: attachmentUrls,
                 timestamp: serverTimestamp(),
                 isRead: false
             });
+            
+            // Clear selected files
+            selectedFiles = [];
+            renderFilePreview();
             
             // Update conversation
             const convRef = doc(db, 'conversations', selectedConversationId);
@@ -904,7 +1273,7 @@
             const currentUnread = convDoc.data()?.unreadCount?.[recipient.id] || 0;
             
             await updateDoc(convRef, {
-                lastMessage: content,
+                lastMessage: messageContent,
                 lastMessageTime: serverTimestamp(),
                 lastSenderId: currentUser.id,
                 updatedAt: serverTimestamp(),
@@ -913,6 +1282,16 @@
         } catch (error) {
             console.error('Error sending message:', error);
             alert('Failed to send message. Please try again.');
+        } finally {
+            // Reset send button
+            if (sendBtn) {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                `;
+            }
         }
     };
 
