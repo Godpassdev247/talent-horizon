@@ -335,7 +335,7 @@ export default function FirebaseMessages({ currentUser }: FirebaseMessagesProps)
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4" style={{ backgroundColor: '#e5ddd5' }}>
+            <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 py-4" style={{ backgroundColor: '#e5ddd5' }}>
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-slate-500">
                   <MessageSquare className="w-12 h-12 mb-2 opacity-50" />
@@ -352,10 +352,10 @@ export default function FirebaseMessages({ currentUser }: FirebaseMessagesProps)
                         <div
                           className={`relative py-2 px-3 rounded-lg shadow-sm ${
                             isOwn
-                              ? 'bg-[#dcf8c6] rounded-tr-none ml-12'
-                              : 'bg-white rounded-tl-none mr-12'
+                              ? 'bg-[#dcf8c6] rounded-tr-none ml-16 sm:ml-20'
+                              : 'bg-white rounded-tl-none mr-16 sm:mr-20'
                           }`}
-                          style={{ maxWidth: 'calc(100% - 48px)', minWidth: '80px' }}
+                          style={{ maxWidth: 'calc(100% - 64px)', minWidth: '80px' }}
                         >
                           {msg.content && msg.content !== '📎 Attachment' && (
                             <p className="text-[15px] text-slate-800 break-words whitespace-pre-wrap">
