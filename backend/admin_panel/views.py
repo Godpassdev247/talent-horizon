@@ -752,11 +752,12 @@ def messages(request):
         admin_user = cursor.fetchone()
         admin_frontend_id = admin_user['id'] if admin_user else request.user.id
         
-        # Get all root messages (conversations) where admin is sender or recipient
-        # Root messages are those without a parentId
+        # Get all unique conversations where admin is sender or recipient
+        # Group by conversationId to get unique conversations
         cursor.execute("""
             SELECT 
                 m.id,
+                m.conversationId,
                 m.senderId,
                 m.senderName,
                 m.senderTitle,
@@ -776,74 +777,80 @@ def messages(request):
             LEFT JOIN jobs j ON m.jobId = j.id
             LEFT JOIN companies c ON m.companyId = c.id
             LEFT JOIN users u ON m.recipientId = u.id
-            WHERE m.parentId IS NULL
-            AND (m.senderId = %s OR m.recipientId = %s)
+            WHERE (m.senderId = %s OR m.recipientId = %s)
             ORDER BY m.createdAt DESC
         """, (admin_frontend_id, admin_frontend_id))
         
-        root_messages = cursor.fetchall()
+        all_messages = cursor.fetchall()
         
-        for msg in root_messages:
-            # Get reply count and last message for this conversation
-            cursor.execute("""
-                SELECT id, senderName, content, createdAt 
-                FROM messages 
-                WHERE parentId = %s 
-                ORDER BY createdAt DESC 
-                LIMIT 1
-            """, (msg['id'],))
-            last_reply = cursor.fetchone()
-            
-            cursor.execute("SELECT COUNT(*) as count FROM messages WHERE parentId = %s", (msg['id'],))
-            reply_count = cursor.fetchone()['count']
-            
-            # Count unread messages in this thread
+        # Group messages by conversationId
+        conversations_dict = {}
+        for msg in all_messages:
+            conv_id = msg['conversationId']
+            if conv_id and conv_id not in conversations_dict:
+                # Determine the other user in the conversation
+                if msg['senderId'] == admin_frontend_id:
+                    other_user_id = msg['recipientId']
+                    other_user_name = msg['recipient_name'] or 'User'
+                    other_user_email = msg['recipient_email']
+                else:
+                    other_user_id = msg['senderId']
+                    other_user_name = msg['senderName'] or 'User'
+                    other_user_email = None
+                
+                conversations_dict[conv_id] = {
+                    'conversation_id': conv_id,
+                    'other_user_id': other_user_id,
+                    'other_user_name': other_user_name,
+                    'other_user_email': other_user_email,
+                    'sender_title': msg['senderTitle'],
+                    'company_verified': msg['company_verified'],
+                    'company_name': msg['company_name'],
+                    'job_title': msg['job_title'],
+                    'subject': msg['subject'],
+                    'last_message': msg['content'],
+                    'last_message_time': msg['createdAt'],
+                    'last_sender': msg['senderName'],
+                }
+        
+        # Now get unread counts and format conversations
+        for conv_id, conv_data in conversations_dict.items():
+            # Count unread messages in this conversation
             cursor.execute("""
                 SELECT COUNT(*) as count FROM messages 
-                WHERE (id = %s OR parentId = %s) 
+                WHERE conversationId = %s 
                 AND recipientId = %s 
-                AND isRead = FALSE
-            """, (msg['id'], msg['id'], admin_frontend_id))
+                AND status != 'read'
+            """, (conv_id, admin_frontend_id))
             unread_count = cursor.fetchone()['count']
             
-            # Determine the other user in the conversation
-            if msg['senderId'] == admin_frontend_id:
-                other_user_name = msg['recipient_name'] or 'User'
-                other_user_email = msg['recipient_email']
-            else:
-                other_user_name = msg['senderName'] or 'User'
-                other_user_email = None
+            # Get message count
+            cursor.execute("SELECT COUNT(*) as count FROM messages WHERE conversationId = %s", (conv_id,))
+            message_count = cursor.fetchone()['count']
             
-            # Get last message content
-            if last_reply:
-                last_message_content = last_reply['content']
-                last_message_time = last_reply['createdAt']
-                last_sender = last_reply['senderName']
-            else:
-                last_message_content = msg['content']
-                last_message_time = msg['createdAt']
-                last_sender = msg['senderName']
+            other_user_name = conv_data['other_user_name']
             
             formatted_conversations.append({
-                'id': msg['id'],
+                'id': conv_id,  # Use conversationId as the ID
+                'other_user_id': conv_data['other_user_id'],
                 'other_user': {
                     'name': other_user_name,
-                    'email': other_user_email,
+                    'email': conv_data['other_user_email'],
                     'first_name': other_user_name.split()[0] if other_user_name else 'U',
                     'last_name': other_user_name.split()[-1] if other_user_name and len(other_user_name.split()) > 1 else '',
                 },
                 'display_name': other_user_name,
-                'sender_position': msg['senderTitle'],
-                'is_verified': msg['company_verified'] if msg['company_verified'] else False,
+                'sender_position': conv_data['sender_title'],
+                'is_verified': conv_data['company_verified'] if conv_data['company_verified'] else False,
                 'metadata': {
-                    'company_name': msg['company_name'],
-                    'job_title': msg['job_title'],
+                    'company_name': conv_data['company_name'],
+                    'job_title': conv_data['job_title'],
                 },
-                'subject': msg['subject'],
-                'last_message': f"{last_sender}: {last_message_content[:50]}..." if reply_count > 0 else last_message_content[:80] + '...',
-                'last_message_time': last_message_time,
+                'subject': conv_data['subject'],
+                'last_message': f"{conv_data['last_sender']}: {conv_data['last_message'][:50]}..." if message_count > 1 else conv_data['last_message'][:80] + '...',
+                'last_message_time': conv_data['last_message_time'],
                 'unread_count': unread_count,
-                'reply_count': reply_count,
+                'message_count': message_count,
                 'is_online': False,
             })
         

@@ -729,7 +729,8 @@
                     {% for conv in conversations %}
                     <div class="conversation-item {% if conv.unread_count > 0 %}unread{% endif %}" 
                          data-conversation-id="{{ conv.id }}"
-                         onclick="openConversation({{ conv.id }})">
+                         data-other-user-id="{{ conv.other_user_id }}"
+                         onclick="openConversation('{{ conv.id }}', {{ conv.other_user_id }})">
                         <div class="conversation-avatar">
                             {{ conv.other_user.first_name|slice:":1" }}{{ conv.other_user.last_name|slice:":1" }}
                             {% if conv.is_online %}
@@ -854,8 +855,11 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeFileViewer();
 });
 
-function openConversation(conversationId) {
+let currentOtherUserId = null;
+
+function openConversation(conversationId, otherUserId) {
     currentConversationId = conversationId;
+    currentOtherUserId = otherUserId;
     
     // Show chat panel on mobile
     document.getElementById('chatPanel').classList.add('active');
@@ -889,17 +893,44 @@ function openConversation(conversationId) {
 }
 
 function loadConversation(conversationId) {
-    fetch(`/admin-panel/api/messages/conversations/${conversationId}/`)
-        .then(response => response.json())
+    fetch(`/admin-panel/api/messages/conversations/${conversationId}/`, {
+        credentials: 'include'
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Conversation data:', data);
             if (data.success) {
-                currentOtherUser = data.conversation.other_user;
-                renderChatHeader(data.conversation);
+                // Get the other user info from the conversation item
+                const convItem = document.querySelector(`[data-conversation-id="${conversationId}"]`);
+                const otherUserName = convItem ? convItem.querySelector('.conversation-name').textContent.trim().split(' •')[0] : 'User';
+                
+                // Create conversation object for header
+                const conversation = {
+                    other_user: {
+                        name: otherUserName,
+                        role: 'User'
+                    },
+                    display_name: otherUserName,
+                    metadata: {}
+                };
+                
+                renderChatHeader(conversation);
                 renderMessages(data.messages);
                 scrollToBottom();
+            } else {
+                console.error('Error in response:', data.error);
+                alert('Failed to load conversation: ' + (data.error || 'Unknown error'));
             }
         })
-        .catch(error => console.error('Error loading conversation:', error));
+        .catch(error => {
+            console.error('Error loading conversation:', error);
+            alert('Failed to load conversation. Please try again.');
+        });
 }
 
 function renderChatHeader(conversation) {
@@ -1224,6 +1255,7 @@ async function sendMessage() {
         },
         body: JSON.stringify({
             conversation_id: currentConversationId,
+            recipient_id: currentOtherUserId,
             content: messageContent
         })
     })
