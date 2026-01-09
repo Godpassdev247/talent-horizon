@@ -1142,7 +1142,7 @@ export default function Dashboard() {
 
           {/* Messages Section - Firebase Real-time Chat */}
           {activeSection === "messages" && (
-            <div className="h-[calc(100vh-64px)] -mx-4 lg:-mx-6 -my-4 lg:-my-6">
+            <div className="h-[calc(100vh-64px)] md:h-[calc(100vh-64px)] -mx-4 lg:-mx-6 -my-4 lg:-my-6 fixed md:relative inset-0 md:inset-auto top-16 md:top-auto z-30 md:z-auto bg-white">
               <FirebaseMessages 
                 currentUser={user ? {
                   id: user.id,
@@ -2392,7 +2392,8 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Bottom Tab Navigation - Mobile Only */}
+      {/* Bottom Tab Navigation - Mobile Only - Hidden when messages are open */}
+      {activeSection !== 'messages' && (
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 md:hidden z-40" style={{paddingBottom: 'env(safe-area-inset-bottom, 0px)'}}>
         <div className="flex justify-around items-center h-16">
           <button
@@ -2427,6 +2428,7 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
+      )}
 
       {/* Loan Withdrawal Modal */}
       {showWithdrawalForm && selectedLoan && (
