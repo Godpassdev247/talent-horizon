@@ -446,8 +446,8 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               </div>
             </div>
 
-            {/* Messages Area - Scrollable middle section with WhatsApp-like spacing */}
-            <div className="flex-1 overflow-y-auto py-4 space-y-2.5 bg-slate-100/50 min-h-0">
+            {/* Messages Area - WhatsApp/Telegram style layout */}
+            <div className="flex-1 overflow-y-auto py-3 space-y-1.5 bg-slate-100/50 min-h-0">
               {messages.length === 0 ? (
                 <div className="h-full flex items-center justify-center px-4">
                   <div className="text-center">
@@ -465,17 +465,24 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                   return (
                     <div 
                       key={msg.id} 
-                      className={`flex px-4 ${isOwn ? 'justify-end' : 'justify-start'}`}
+                      className="mx-3 sm:mx-4"
+                      style={{
+                        display: 'flex',
+                        justifyContent: isOwn ? 'flex-end' : 'flex-start'
+                      }}
                     >
                       <div 
-                        className={`relative max-w-[75%] sm:max-w-[65%] px-4 py-2.5 rounded-2xl shadow-sm ${
+                        className={`relative px-3 py-2 rounded-2xl shadow-sm ${
                           isOwn 
-                            ? 'rounded-br-sm ml-12' 
-                            : 'rounded-bl-sm mr-12'
+                            ? 'rounded-br-sm' 
+                            : 'rounded-bl-sm'
                         }`}
                         style={{
                           backgroundColor: isOwn ? '#3b82f6' : '#334155',
-                          color: 'white'
+                          color: 'white',
+                          maxWidth: '70%',
+                          marginLeft: isOwn ? '20%' : '0',
+                          marginRight: isOwn ? '0' : '20%'
                         }}
                       >
                         {msg.content && msg.content !== '📎 Attachment' && (
