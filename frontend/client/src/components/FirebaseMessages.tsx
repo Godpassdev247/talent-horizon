@@ -446,13 +446,10 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               </div>
             </div>
 
-            {/* Messages Area - Exact WhatsApp style */}
-            <div 
-              className="flex-1 overflow-y-auto bg-slate-100/50 min-h-0"
-              style={{ padding: '8px 0' }}
-            >
+            {/* Messages Area - Responsive WhatsApp style */}
+            <div className="flex-1 overflow-y-auto bg-slate-100/50 min-h-0 py-2 md:py-3">
               {messages.length === 0 ? (
-                <div className="h-full flex items-center justify-center" style={{ padding: '0 16px' }}>
+                <div className="h-full flex items-center justify-center px-4">
                   <div className="text-center">
                     <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-3">
                       <MessageSquare className="w-8 h-8 text-slate-500" />
@@ -461,7 +458,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                   </div>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                <div className="flex flex-col gap-1">
                   {messages.map((msg) => {
                     const isOwn = msg.senderId === currentUser?.id;
                     const attachments = msg.attachments || [];
@@ -469,27 +466,21 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                     return (
                       <div 
                         key={msg.id} 
-                        style={{
-                          display: 'flex',
-                          justifyContent: isOwn ? 'flex-end' : 'flex-start',
-                          paddingLeft: isOwn ? '50px' : '6px',
-                          paddingRight: isOwn ? '6px' : '50px'
-                        }}
+                        className={`flex px-2 sm:px-3 md:px-4 ${
+                          isOwn 
+                            ? 'justify-end pl-10 sm:pl-16 md:pl-20' 
+                            : 'justify-start pr-10 sm:pr-16 md:pr-20'
+                        }`}
                       >
                         <div 
-                          style={{
-                            backgroundColor: isOwn ? '#3b82f6' : '#334155',
-                            color: 'white',
-                            padding: '6px 12px 8px 12px',
-                            borderRadius: isOwn ? '8px 8px 0 8px' : '8px 8px 8px 0',
-                            maxWidth: '85%',
-                            boxShadow: '0 1px 1px rgba(0,0,0,0.08)',
-                            wordBreak: 'break-word',
-                            position: 'relative' as const
-                          }}
+                          className={`relative max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[65%] px-3 py-2 rounded-lg shadow-sm ${
+                            isOwn 
+                              ? 'bg-blue-500 rounded-br-none' 
+                              : 'bg-slate-700 rounded-bl-none'
+                          }`}
                         >
                           {msg.content && msg.content !== '📎 Attachment' && (
-                            <p style={{ fontSize: '15px', lineHeight: '1.35', margin: 0 }}>
+                            <p className="text-[15px] leading-snug text-white break-words whitespace-pre-wrap">
                               {msg.content}
                             </p>
                           )}
@@ -499,15 +490,10 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                               {renderAttachment(url, isOwn)}
                             </div>
                           ))}
-                          <div style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'flex-end', 
-                            gap: '3px', 
-                            marginTop: '2px',
-                            opacity: 0.7
-                          }}>
-                            <span style={{ fontSize: '11px' }}>
+                          <div className={`flex items-center justify-end gap-1 mt-1 ${
+                            isOwn ? 'text-blue-100' : 'text-slate-300'
+                          }`}>
+                            <span className="text-[11px]">
                               {formatMessageTime(msg.timestamp)}
                             </span>
                             {isOwn && (
