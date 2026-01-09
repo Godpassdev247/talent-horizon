@@ -220,6 +220,14 @@ For questions or issues, please open a GitHub issue or contact support@talenthor
 
 ## 🔄 Recent Updates
 
+### Version 1.2.0 - Authentication & Messaging Fixes (January 2026)
+- ✅ Fixed authentication token mismatch (`frontendToken` consistency)
+- ✅ Fixed messaging system with proper database schema sync
+- ✅ Added `conversationId` support for threaded conversations
+- ✅ Improved message reply functionality
+- ✅ Enhanced chat UI with proper message threading
+- ✅ Fixed login flow and session persistence
+
 ### Version 1.1.0 - Messaging System Complete
 - ✅ WhatsApp-style messaging UI with file attachments
 - ✅ Real-time message delivery with WebSocket support

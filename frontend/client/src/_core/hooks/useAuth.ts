@@ -33,7 +33,7 @@ export function useAuth(options?: UseAuthOptions) {
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem('user');
-      const storedToken = localStorage.getItem('token');
+      const storedToken = localStorage.getItem('frontendToken');
       
       if (storedUser && storedToken) {
         const parsedUser = JSON.parse(storedUser);
@@ -66,11 +66,11 @@ export function useAuth(options?: UseAuthOptions) {
 
   const logout = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('frontendToken');
       if (token) {
         // Try to call Django logout endpoint
         try {
-          await fetch('https://8000-igaq82edlqb5u4iaikqp1-f81208bb.us2.manus.computer/api/auth/logout/', {
+          await fetch('https://8000-ine5ylmpnv9frkz54p64f-e88f2fdb.us2.manus.computer/api/auth/logout/', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -83,14 +83,14 @@ export function useAuth(options?: UseAuthOptions) {
       }
     } finally {
       localStorage.removeItem('user');
-      localStorage.removeItem('token');
+      localStorage.removeItem('frontendToken');
       setUser(null);
     }
   }, []);
 
   const refresh = useCallback(() => {
     const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
+    const storedToken = localStorage.getItem('frontendToken');
     
     if (storedUser && storedToken) {
       try {

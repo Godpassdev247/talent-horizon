@@ -217,6 +217,7 @@ export type InsertUserSkill = typeof userSkills.$inferInsert;
  */
 export const messages = mysqlTable("messages", {
   id: int("id").autoincrement().primaryKey(),
+  conversationId: varchar("conversationId", { length: 100 }).notNull(),
   senderId: int("senderId").notNull(),
   senderName: varchar("senderName", { length: 255 }),
   senderTitle: varchar("senderTitle", { length: 255 }),

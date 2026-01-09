@@ -59,7 +59,7 @@ export default function Messages() {
   // Check authentication
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('frontendToken');
     
     if (!storedUser || !token) {
       setLocation('/login');
@@ -75,7 +75,7 @@ export default function Messages() {
 
   // Fetch conversations
   const fetchConversations = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('frontendToken');
     if (!token) return;
 
     try {
@@ -99,7 +99,7 @@ export default function Messages() {
 
   // Fetch messages for selected conversation
   const fetchMessages = async (conversationId: number) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('frontendToken');
     if (!token) return;
 
     try {
@@ -127,7 +127,7 @@ export default function Messages() {
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation || sending) return;
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('frontendToken');
     if (!token) return;
 
     try {

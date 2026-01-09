@@ -3,15 +3,16 @@
  * User authentication page
  */
 
-import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { 
   Mail, 
   Lock,
   Eye,
   EyeOff,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,96 +20,85 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 export default function Login() {
-  const [, setLocation] = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: ""
   });
+
+  // Check if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('frontendToken');
+    if (token) {
+      // Already logged in, redirect to dashboard
+      window.location.replace('/dashboard');
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      // First try frontend tRPC auth to get the frontend user ID
-      let frontendToken = null;
-      let frontendUserId = null;
-      try {
-        const frontendResponse = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
-        const frontendData = await frontendResponse.json();
-        if (frontendResponse.ok && frontendData.token) {
-          frontendToken = frontendData.token;
-          frontendUserId = frontendData.user?.id;
-        }
-      } catch (err) {
-        console.log('Frontend auth not available, trying Django');
-      }
-      
-      // Also call Django backend for authentication
-      const response = await fetch('https://8000-igaq82edlqb5u4iaikqp1-f81208bb.us2.manus.computer/api/auth/login/', {
+      // Try frontend tRPC auth first
+      const frontendResponse = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-        credentials: 'include',
       });
       
-      const data = await response.json();
+      const frontendData = await frontendResponse.json();
       
-      if ((response.ok && data.user) || frontendToken) {
-        // Store user info in localStorage
-        const userToStore = data.user || { email: formData.email };
-        // If we got a frontend user ID, use that for applications
-        if (frontendUserId) {
-          userToStore.frontendId = frontendUserId;
-        }
-        localStorage.setItem('user', JSON.stringify(userToStore));
+      if (frontendResponse.ok && frontendData.token) {
+        // Store frontend token for tRPC calls
+        localStorage.setItem('frontendToken', frontendData.token);
         
-        // Store frontend token for tRPC calls - this is critical for messages
-        if (frontendToken) {
-          localStorage.setItem('frontendToken', frontendToken);
-          console.log('Frontend token stored successfully');
-        } else {
-          console.log('No frontend token received - messages may not work');
-        }
-        // Also store Django token for Django API calls
-        if (data.tokens?.access) {
-          localStorage.setItem('token', data.tokens.access);
+        // Store user info
+        if (frontendData.user) {
+          localStorage.setItem('user', JSON.stringify(frontendData.user));
         }
         
-        toast.success("Login successful! Redirecting...");
+        console.log('Login successful, token stored');
+        toast.success("Login successful! Redirecting to dashboard...");
         
-        // Redirect based on user role
-        if (data.user?.role === 'admin') {
-          // Admin goes to Django admin panel
-          setTimeout(() => {
-            window.location.href = 'https://8000-igaq82edlqb5u4iaikqp1-f81208bb.us2.manus.computer/admin-panel/';
-          }, 500);
-        } else {
-          // Other users stay on React frontend
-          setTimeout(() => {
-            setLocation('/dashboard');
-          }, 500);
-        }
-      } else {
-        toast.error(data.error || data.message || "Invalid email or password");
+        // Set redirecting state to show loading
+        setIsRedirecting(true);
+        
+        // Use window.location.replace for a hard redirect
+        setTimeout(() => {
+          window.location.replace('/dashboard');
+        }, 300);
+        return;
       }
+      
+      // If frontend auth failed, show error
+      toast.error(frontendData.error || "Invalid email or password");
+      
     } catch (error) {
       console.error('Login error:', error);
       toast.error("Login failed. Please check your connection.");
     } finally {
-      setIsLoading(false);
+      if (!isRedirecting) {
+        setIsLoading(false);
+      }
     }
   };
+
+  // Show loading screen when redirecting
+  if (isRedirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-orange mx-auto mb-4" />
+          <p className="text-lg text-slate-600">Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex">
@@ -197,7 +187,12 @@ export default function Login() {
               className="w-full bg-orange hover:bg-orange-dark text-white"
               disabled={isLoading}
             >
-              {isLoading ? "Signing in..." : (
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 w-5 h-5 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
                 <>
                   Sign In
                   <ArrowRight className="ml-2 w-5 h-5" />

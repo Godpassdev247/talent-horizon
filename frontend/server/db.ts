@@ -827,11 +827,16 @@ export async function seedInitialData() {
 // ============ MESSAGE QUERIES ============
 
 export async function getUserMessages(userId: number) {
+  console.log('[getUserMessages] Called with userId:', userId);
   const db = await getDb();
-  if (!db) return [];
+  if (!db) {
+    console.log('[getUserMessages] Database not available');
+    return [];
+  }
   
   // Only get root messages (conversations) - messages with no parentId
   // These are the original messages that start a conversation thread
+  console.log('[getUserMessages] Querying messages for userId:', userId);
   const msgs = await db.select().from(messages)
     .where(and(
       or(eq(messages.recipientId, userId), eq(messages.senderId, userId)),
@@ -839,6 +844,7 @@ export async function getUserMessages(userId: number) {
       isNull(messages.parentId)  // Only root messages, not replies
     ))
     .orderBy(desc(messages.createdAt));
+  console.log('[getUserMessages] Found', msgs.length, 'root messages');
   
   // Enrich with job and company info, and get reply count
   const enriched = await Promise.all(msgs.map(async (msg) => {
@@ -886,6 +892,7 @@ export async function getUserMessages(userId: number) {
     return timeB - timeA;
   });
   
+  console.log('[getUserMessages] Returning', enriched.length, 'enriched conversations');
   return enriched;
 }
 
@@ -970,7 +977,10 @@ export async function replyToMessage(parentId: number, userId: number, content: 
   
   // Create reply
   const user = await getUserById(userId);
+  // Use parent's conversationId or generate one
+  const conversationId = parent.conversationId || `conv_${Math.min(userId, recipientId)}_${Math.max(userId, recipientId)}`;
   const result = await db.insert(messages).values({
+    conversationId,
     senderId: userId,
     senderName: user?.name || 'User',
     recipientId,

@@ -5,10 +5,10 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q, Max
 from core.models import User
-from jobs.models import Application
 import json
 import mysql.connector
 from datetime import datetime
+import hashlib
 
 
 def get_mysql_connection():
@@ -19,6 +19,12 @@ def get_mysql_connection():
         password='',
         database='talent_horizon'
     )
+
+
+def generate_conversation_id(user1_id, user2_id):
+    """Generate a consistent conversation ID for two users"""
+    sorted_ids = sorted([user1_id, user2_id])
+    return f"conv_{sorted_ids[0]}_{sorted_ids[1]}"
 
 
 def jwt_or_session_required(view_func):
@@ -49,106 +55,71 @@ def jwt_or_session_required(view_func):
 @jwt_or_session_required
 @require_http_methods(["POST"])
 def start_conversation(request):
-    """Start a conversation with an applicant - writes directly to frontend MySQL"""
+    """Start a conversation with a user - writes directly to frontend MySQL"""
     try:
         data = json.loads(request.body)
         
-        applicant_id = data.get('applicant_id')
-        sender_name = data.get('sender_name')
-        sender_position = data.get('sender_position')
-        sender_avatar_url = data.get('sender_avatar_url', '')
-        initial_message = data.get('initial_message')
-        application_id = data.get('application_id')
-        job_title = data.get('job_title')
-        company_name = data.get('company_name')
+        recipient_id = data.get('recipient_id') or data.get('applicant_id')
+        content = data.get('content') or data.get('initial_message')
         
-        # Validate required fields
-        if not all([applicant_id, sender_name, sender_position, initial_message]):
+        if not recipient_id or not content:
             return JsonResponse({
                 'success': False,
-                'error': 'Missing required fields'
+                'error': 'Missing required fields: recipient_id and content'
             }, status=400)
         
-        # Get the applicant from Django to get their email
-        applicant = get_object_or_404(User, id=applicant_id, role='applicant')
-        
-        # Get job and company IDs
-        job_id = None
-        company_id = None
-        if application_id:
-            app = Application.objects.filter(id=application_id).select_related('job__company').first()
-            if app and app.job:
-                job_id = app.job.id
-                company_id = app.job.company.id if app.job.company else None
-        
-        # Write directly to frontend MySQL (single source of truth)
         conn = get_mysql_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
         
         try:
-            # Look up the frontend MySQL user ID by email
-            cursor.execute("SELECT id FROM users WHERE email = %s", (applicant.email,))
-            frontend_user = cursor.fetchone()
+            # Get the admin's frontend MySQL user ID by email
+            cursor.execute("SELECT id, name FROM users WHERE email = %s", (request.user.email,))
+            admin_user = cursor.fetchone()
             
-            if not frontend_user:
-                return JsonResponse({
-                    'success': False,
-                    'error': 'Recipient user not found in system'
-                }, status=404)
-            
-            frontend_recipient_id = frontend_user[0]
-            
-            # Get the admin user's ID in the frontend MySQL database
-            cursor.execute("SELECT id FROM users WHERE email = %s", (request.user.email,))
-            admin_frontend_user = cursor.fetchone()
-            
-            # If admin doesn't exist in frontend DB, create them
-            if not admin_frontend_user:
+            if not admin_user:
+                # Create admin user in frontend DB
                 cursor.execute("""
                     INSERT INTO users (openId, name, email, loginMethod, role, createdAt, updatedAt)
                     VALUES (%s, %s, %s, 'local', 'admin', NOW(), NOW())
                 """, (f'admin-{request.user.id}', request.user.get_full_name() or 'Admin User', request.user.email))
                 conn.commit()
-                admin_sender_id = cursor.lastrowid
+                admin_id = cursor.lastrowid
+                admin_name = request.user.get_full_name() or 'Admin User'
             else:
-                admin_sender_id = admin_frontend_user[0]
+                admin_id = admin_user['id']
+                admin_name = admin_user['name']
             
-            # Insert message directly into frontend MySQL
+            # Verify recipient exists
+            cursor.execute("SELECT id, name FROM users WHERE id = %s", (recipient_id,))
+            recipient = cursor.fetchone()
+            
+            if not recipient:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Recipient user not found'
+                }, status=404)
+            
+            # Generate conversation ID
+            conversation_id = generate_conversation_id(admin_id, recipient_id)
+            
+            # Insert message
             cursor.execute("""
-                INSERT INTO messages (senderId, senderName, senderTitle, senderAvatarUrl, recipientId, applicationId, jobId, companyId, subject, content, isRead, isArchived, createdAt)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
-            """, (
-                admin_sender_id,
-                sender_name,
-                sender_position,
-                sender_avatar_url if sender_avatar_url else None,
-                frontend_recipient_id,
-                application_id,
-                job_id,
-                company_id,
-                f"Regarding: {job_title}" if job_title else "Message from Employer",
-                initial_message,
-                False,
-                False
-            ))
+                INSERT INTO messages (conversationId, senderId, senderName, recipientId, content, messageType, status, createdAt)
+                VALUES (%s, %s, %s, %s, %s, 'text', 'sent', NOW())
+            """, (conversation_id, admin_id, admin_name, recipient_id, content))
             conn.commit()
             message_id = cursor.lastrowid
             
             return JsonResponse({
                 'success': True,
                 'message_id': message_id,
-                'recipient_id': frontend_recipient_id
+                'conversation_id': conversation_id
             })
             
         finally:
             cursor.close()
             conn.close()
         
-    except User.DoesNotExist:
-        return JsonResponse({
-            'success': False,
-            'error': 'Applicant not found'
-        }, status=404)
     except Exception as e:
         print(f"Error in start_conversation: {e}")
         return JsonResponse({
@@ -160,7 +131,7 @@ def start_conversation(request):
 @jwt_or_session_required
 @require_http_methods(["GET"])
 def get_conversations(request):
-    """Get all conversations for the current user from frontend MySQL"""
+    """Get all conversations for the current admin user"""
     try:
         conn = get_mysql_connection()
         cursor = conn.cursor(dictionary=True)
@@ -168,73 +139,73 @@ def get_conversations(request):
         # Get the admin's frontend MySQL user ID by email
         cursor.execute("SELECT id FROM users WHERE email = %s", (request.user.email,))
         admin_user = cursor.fetchone()
-        admin_frontend_id = admin_user['id'] if admin_user else request.user.id
         
-        # Get root messages (conversations) where admin is sender or recipient
+        if not admin_user:
+            cursor.close()
+            conn.close()
+            return JsonResponse({'success': True, 'conversations': []})
+        
+        admin_id = admin_user['id']
+        
+        # Get all unique conversations where admin is sender or recipient
         cursor.execute("""
-            SELECT 
-                m.*,
-                j.title as job_title,
-                c.name as company_name,
-                c.verified as company_verified,
-                u.name as recipient_name,
-                u.email as recipient_email,
-                sender_user.name as sender_user_name
-            FROM messages m
-            LEFT JOIN jobs j ON m.jobId = j.id
-            LEFT JOIN companies c ON m.companyId = c.id
-            LEFT JOIN users u ON m.recipientId = u.id
-            LEFT JOIN users sender_user ON m.senderId = sender_user.id
-            WHERE (m.senderId = %s OR m.recipientId = %s) AND m.parentId IS NULL
-            ORDER BY m.createdAt DESC
-        """, (admin_frontend_id, admin_frontend_id))
+            SELECT DISTINCT conversationId FROM messages 
+            WHERE senderId = %s OR recipientId = %s
+        """, (admin_id, admin_id))
         
-        root_messages = cursor.fetchall()
+        conversation_ids = [row['conversationId'] for row in cursor.fetchall()]
         
-        # Build conversations array for polling
         conversations = []
-        for msg in root_messages:
-            # Get the latest message in this thread (including replies)
+        for conv_id in conversation_ids:
+            # Get the other user in this conversation
             cursor.execute("""
-                SELECT content, senderId, createdAt FROM messages 
-                WHERE id = %s OR parentId = %s 
+                SELECT DISTINCT 
+                    CASE WHEN senderId = %s THEN recipientId ELSE senderId END as other_user_id
+                FROM messages WHERE conversationId = %s
+            """, (admin_id, conv_id))
+            other_user_row = cursor.fetchone()
+            
+            if not other_user_row:
+                continue
+            
+            other_user_id = other_user_row['other_user_id']
+            
+            # Get other user info
+            cursor.execute("SELECT id, name, email FROM users WHERE id = %s", (other_user_id,))
+            other_user = cursor.fetchone()
+            
+            if not other_user:
+                continue
+            
+            # Get latest message
+            cursor.execute("""
+                SELECT * FROM messages 
+                WHERE conversationId = %s 
                 ORDER BY createdAt DESC LIMIT 1
-            """, (msg['id'], msg['id']))
-            latest = cursor.fetchone()
+            """, (conv_id,))
+            latest_msg = cursor.fetchone()
             
-            # Get sender name for the latest message
-            if latest:
-                cursor.execute("SELECT name FROM users WHERE id = %s", (latest['senderId'],))
-                latest_sender = cursor.fetchone()
-                latest_sender_name = latest_sender['name'] if latest_sender else 'User'
-            else:
-                latest_sender_name = msg.get('senderName') or 'User'
-                latest = msg
-            
-            # Determine the other user in the conversation
-            if msg['senderId'] == admin_frontend_id:
-                other_user_name = msg.get('recipient_name') or 'User'
-                other_user_id = msg['recipientId']
-            else:
-                other_user_name = msg.get('sender_user_name') or msg.get('senderName') or 'User'
-                other_user_id = msg['senderId']
-            
-            # Format last message preview
-            last_message = latest['content'][:50] + '...' if len(latest['content']) > 50 else latest['content']
-            if latest['senderId'] != admin_frontend_id:
-                last_message = f"{latest_sender_name}: {last_message}"
+            # Get unread count
+            cursor.execute("""
+                SELECT COUNT(*) as count FROM messages 
+                WHERE conversationId = %s AND recipientId = %s AND status != 'read'
+            """, (conv_id, admin_id))
+            unread = cursor.fetchone()
             
             conversations.append({
-                'id': msg['id'],
-                'display_name': other_user_name,
-                'last_message': last_message,
-                'last_message_time': latest['createdAt'].isoformat() if latest.get('createdAt') else msg['createdAt'].isoformat() if msg.get('createdAt') else None,
-                'unread_count': 0,
-                'metadata': {
-                    'company_name': msg.get('company_name'),
-                    'job_title': msg.get('job_title'),
-                }
+                'id': conv_id,
+                'recipient_id': other_user_id,
+                'display_name': other_user['name'],
+                'email': other_user['email'],
+                'last_message': latest_msg['content'] if latest_msg else None,
+                'last_message_type': latest_msg['messageType'] if latest_msg else None,
+                'last_message_time': latest_msg['createdAt'].isoformat() if latest_msg and latest_msg['createdAt'] else None,
+                'unread_count': unread['count'] if unread else 0,
+                'is_online': False
             })
+        
+        # Sort by last message time
+        conversations.sort(key=lambda x: x['last_message_time'] or '', reverse=True)
         
         cursor.close()
         conn.close()
@@ -246,6 +217,8 @@ def get_conversations(request):
         
     except Exception as e:
         print(f"Error in get_conversations: {e}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({
             'success': False,
             'error': str(e)
@@ -255,119 +228,58 @@ def get_conversations(request):
 @jwt_or_session_required
 @require_http_methods(["GET"])
 def get_conversation(request, conversation_id):
-    """Get a specific conversation/message thread"""
+    """Get all messages in a conversation"""
     try:
         conn = get_mysql_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # Get the admin's frontend MySQL user ID by email
+        # Get admin user ID
         cursor.execute("SELECT id FROM users WHERE email = %s", (request.user.email,))
         admin_user = cursor.fetchone()
-        admin_frontend_id = admin_user['id'] if admin_user else request.user.id
+        admin_id = admin_user['id'] if admin_user else 0
         
-        # Get the main message
-        cursor.execute("""
-            SELECT 
-                m.*,
-                j.title as job_title,
-                c.name as company_name,
-                c.verified as company_verified,
-                u.name as recipient_name,
-                u.email as recipient_email
-            FROM messages m
-            LEFT JOIN jobs j ON m.jobId = j.id
-            LEFT JOIN companies c ON m.companyId = c.id
-            LEFT JOIN users u ON m.recipientId = u.id
-            WHERE m.id = %s
-        """, (conversation_id,))
-        
-        message = cursor.fetchone()
-        
-        if not message:
-            return JsonResponse({'success': False, 'error': 'Message not found'}, status=404)
-        
-        # Get replies
+        # Get all messages in this conversation
         cursor.execute("""
             SELECT m.*, u.name as sender_name_from_user
             FROM messages m
             LEFT JOIN users u ON m.senderId = u.id
-            WHERE m.parentId = %s ORDER BY m.createdAt ASC
+            WHERE m.conversationId = %s
+            ORDER BY m.createdAt ASC
         """, (conversation_id,))
         
-        replies = cursor.fetchall()
+        messages = cursor.fetchall()
+        
+        # Mark messages as read
+        cursor.execute("""
+            UPDATE messages SET status = 'read' 
+            WHERE conversationId = %s AND recipientId = %s AND status != 'read'
+        """, (conversation_id, admin_id))
+        conn.commit()
+        
+        # Format messages
+        formatted_messages = []
+        for msg in messages:
+            formatted_messages.append({
+                'id': msg['id'],
+                'conversation_id': msg['conversationId'],
+                'sender_id': msg['senderId'],
+                'sender_name': msg['senderName'] or msg['sender_name_from_user'] or 'User',
+                'recipient_id': msg['recipientId'],
+                'content': msg['content'],
+                'message_type': msg['messageType'],
+                'file_url': msg.get('fileUrl'),
+                'file_name': msg.get('fileName'),
+                'status': msg['status'],
+                'created_at': msg['createdAt'].isoformat() if msg['createdAt'] else None,
+                'is_from_admin': msg['senderId'] == admin_id
+            })
         
         cursor.close()
         conn.close()
         
-        # Convert datetime objects
-        if message.get('createdAt'):
-            message['createdAt'] = message['createdAt'].isoformat()
-        for reply in replies:
-            if reply.get('createdAt'):
-                reply['createdAt'] = reply['createdAt'].isoformat()
-        
-        # Determine the "other user" in the conversation (the one who is NOT the admin)
-        if message['senderId'] == admin_frontend_id:
-            other_user_name = message.get('recipient_name') or 'User'
-            other_user_email = message.get('recipient_email')
-            other_user_id = message['recipientId']
-        else:
-            other_user_name = message.get('senderName') or 'User'
-            other_user_email = None
-            other_user_id = message['senderId']
-        
-        # Build conversation object in the format expected by the frontend
-        conversation = {
-            'id': message['id'],
-            'other_user': {
-                'id': other_user_id,
-                'name': other_user_name,
-                'email': other_user_email,
-                'role': 'applicant',
-                'is_verified': False,
-            },
-            'display_name': other_user_name,
-            'sender_position': message.get('senderTitle'),
-            'metadata': {
-                'company_name': message.get('company_name'),
-                'job_title': message.get('job_title'),
-            },
-            'subject': message.get('subject'),
-        }
-        
-        # Build messages array (original message + replies)
-        all_messages = []
-        
-        # Add the original message
-        all_messages.append({
-            'id': message['id'],
-            'sender_id': message['senderId'],
-            'sender_name': message.get('senderName') or 'Admin',
-            'content': message['content'],
-            'created_at': message['createdAt'],
-            'is_from_admin': message['senderId'] == admin_frontend_id,
-            'is_sent_by_me': message['senderId'] == admin_frontend_id,
-        })
-        
-        # Add replies
-        for reply in replies:
-            all_messages.append({
-                'id': reply['id'],
-                'sender_id': reply['senderId'],
-                'sender_name': reply.get('senderName') or reply.get('sender_name_from_user') or 'User',
-                'content': reply['content'],
-                'created_at': reply['createdAt'],
-                'is_from_admin': reply['senderId'] == admin_frontend_id,
-                'is_sent_by_me': reply['senderId'] == admin_frontend_id,
-            })
-        
         return JsonResponse({
             'success': True,
-            'conversation': conversation,
-            'messages': all_messages,
-            # Also include raw data for backward compatibility
-            'message': message,
-            'replies': replies
+            'messages': formatted_messages
         })
         
     except Exception as e:
@@ -378,79 +290,72 @@ def get_conversation(request, conversation_id):
         }, status=500)
 
 
+@csrf_exempt
 @jwt_or_session_required
 @require_http_methods(["POST"])
 def send_message(request):
-    """Send a reply message"""
+    """Send a message in a conversation"""
     try:
         data = json.loads(request.body)
-        conversation_id = data.get('conversation_id')  # The root message ID
-        parent_id = data.get('parent_id') or conversation_id  # Use conversation_id as parent_id
-        content = data.get('content', '').strip()
         
-        if not content:
-            return JsonResponse({'success': False, 'error': 'Message content is required'}, status=400)
+        conversation_id = data.get('conversation_id')
+        recipient_id = data.get('recipient_id')
+        content = data.get('content')
+        message_type = data.get('message_type', 'text')
+        file_url = data.get('file_url')
+        file_name = data.get('file_name')
+        
+        if not conversation_id or not recipient_id or not content:
+            return JsonResponse({
+                'success': False,
+                'error': 'Missing required fields'
+            }, status=400)
         
         conn = get_mysql_connection()
         cursor = conn.cursor(dictionary=True)
         
         try:
-            # Get the admin's frontend MySQL user ID by email
-            cursor.execute("SELECT id FROM users WHERE email = %s", (request.user.email,))
+            # Get admin user ID
+            cursor.execute("SELECT id, name FROM users WHERE email = %s", (request.user.email,))
             admin_user = cursor.fetchone()
-            admin_frontend_id = admin_user['id'] if admin_user else request.user.id
             
-            # Get parent message to determine recipient
-            if parent_id:
-                cursor.execute("SELECT * FROM messages WHERE id = %s", (parent_id,))
-                parent = cursor.fetchone()
-                
-                if not parent:
-                    return JsonResponse({'success': False, 'error': 'Parent message not found'}, status=404)
-                
-                # Determine recipient (the other person in the conversation)
-                if parent['recipientId'] == admin_frontend_id:
-                    recipient_id = parent['senderId']
-                else:
-                    recipient_id = parent['recipientId']
-            else:
-                return JsonResponse({'success': False, 'error': 'Conversation ID required'}, status=400)
+            if not admin_user:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Admin user not found'
+                }, status=404)
             
-            # Insert reply
+            admin_id = admin_user['id']
+            admin_name = admin_user['name']
+            
+            # Insert message
             cursor.execute("""
-                INSERT INTO messages (senderId, senderName, recipientId, parentId, jobId, companyId, subject, content, isRead, isArchived, createdAt)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
-            """, (
-                admin_frontend_id,
-                request.user.get_full_name() or 'Admin User',
-                recipient_id,
-                parent_id,
-                parent.get('jobId'),
-                parent.get('companyId'),
-                f"Re: {parent.get('subject', 'Message')}",
-                content,
-                False,
-                False
-            ))
+                INSERT INTO messages (conversationId, senderId, senderName, recipientId, content, messageType, fileUrl, fileName, status, createdAt)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'sent', NOW())
+            """, (conversation_id, admin_id, admin_name, recipient_id, content, message_type, file_url, file_name))
             conn.commit()
             message_id = cursor.lastrowid
             
-            # Get the created timestamp
-            cursor.execute("SELECT createdAt FROM messages WHERE id = %s", (message_id,))
-            created_msg = cursor.fetchone()
-            created_at = created_msg['createdAt'].isoformat() if created_msg else datetime.now().isoformat()
+            # Get the inserted message
+            cursor.execute("SELECT * FROM messages WHERE id = %s", (message_id,))
+            msg = cursor.fetchone()
             
             return JsonResponse({
                 'success': True,
                 'message': {
-                    'id': message_id,
-                    'sender_id': admin_frontend_id,
-                    'sender_name': request.user.get_full_name() or 'Admin User',
-                    'content': content,
-                    'created_at': created_at,
+                    'id': msg['id'],
+                    'conversation_id': msg['conversationId'],
+                    'sender_id': msg['senderId'],
+                    'sender_name': msg['senderName'],
+                    'recipient_id': msg['recipientId'],
+                    'content': msg['content'],
+                    'message_type': msg['messageType'],
+                    'file_url': msg.get('fileUrl'),
+                    'file_name': msg.get('fileName'),
+                    'status': msg['status'],
+                    'created_at': msg['createdAt'].isoformat() if msg['createdAt'] else None,
                     'is_from_admin': True
-                },
-                'message_id': message_id
+                }
             })
             
         finally:
@@ -467,13 +372,31 @@ def send_message(request):
 
 @jwt_or_session_required
 @require_http_methods(["POST"])
-def mark_read(request, message_id):
-    """Mark a message as read"""
+def mark_read(request):
+    """Mark all messages in a conversation as read"""
     try:
+        data = json.loads(request.body)
+        conversation_id = data.get('conversation_id')
+        
+        if not conversation_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'Missing conversation_id'
+            }, status=400)
+        
         conn = get_mysql_connection()
         cursor = conn.cursor()
         
-        cursor.execute("UPDATE messages SET isRead = TRUE WHERE id = %s", (message_id,))
+        # Get admin user ID
+        cursor.execute("SELECT id FROM users WHERE email = %s", (request.user.email,))
+        admin_user = cursor.fetchone()
+        admin_id = admin_user[0] if admin_user else 0
+        
+        # Mark messages as read
+        cursor.execute("""
+            UPDATE messages SET status = 'read' 
+            WHERE conversationId = %s AND recipientId = %s AND status != 'read'
+        """, (conversation_id, admin_id))
         conn.commit()
         
         cursor.close()
@@ -482,34 +405,52 @@ def mark_read(request, message_id):
         return JsonResponse({'success': True})
         
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        print(f"Error in mark_read: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 
 @jwt_or_session_required
 @require_http_methods(["GET"])
-def search_users(request):
-    """Search for users to message"""
-    query = request.GET.get('q', '')
-    
-    if len(query) < 2:
-        return JsonResponse({'success': True, 'users': []})
-    
+def get_users(request):
+    """Get all users that admin can message"""
     try:
-        users = User.objects.filter(
-            Q(first_name__icontains=query) |
-            Q(last_name__icontains=query) |
-            Q(email__icontains=query)
-        ).exclude(id=request.user.id)[:10]
+        conn = get_mysql_connection()
+        cursor = conn.cursor(dictionary=True)
         
-        users_data = [{
-            'id': u.id,
-            'name': u.get_full_name(),
-            'email': u.email,
-            'role': u.role,
-            'avatar': u.avatar.url if u.avatar else None
-        } for u in users]
+        # Get all non-admin users
+        cursor.execute("""
+            SELECT id, name, email, role, createdAt 
+            FROM users 
+            WHERE role != 'admin' OR role IS NULL
+            ORDER BY name ASC
+        """)
         
-        return JsonResponse({'success': True, 'users': users_data})
+        users = cursor.fetchall()
+        
+        formatted_users = []
+        for user in users:
+            formatted_users.append({
+                'id': user['id'],
+                'name': user['name'],
+                'email': user['email'],
+                'role': user['role'],
+                'created_at': user['createdAt'].isoformat() if user['createdAt'] else None
+            })
+        
+        cursor.close()
+        conn.close()
+        
+        return JsonResponse({
+            'success': True,
+            'users': formatted_users
+        })
         
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        print(f"Error in get_users: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)

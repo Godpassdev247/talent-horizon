@@ -51,10 +51,10 @@ urlpatterns = [
     # Messages - API Endpoints
     path('messaging/start-conversation/', messaging_views.start_conversation, name='api_start_conversation'),
     path('api/messages/conversations/', messaging_views.get_conversations, name='api_get_conversations'),
-    path('api/messages/conversations/<int:conversation_id>/', messaging_views.get_conversation, name='api_get_conversation'),
+    path('api/messages/conversations/<str:conversation_id>/', messaging_views.get_conversation, name='api_get_conversation'),
     path('api/messages/send/', messaging_views.send_message, name='api_send_message'),
-    path('api/messages/<int:message_id>/read/', messaging_views.mark_read, name='api_mark_read'),
-    path('api/messages/users/search/', messaging_views.search_users, name='api_search_users'),
+    path('api/messages/mark-read/', messaging_views.mark_read, name='api_mark_read'),
+    path('api/messages/users/', messaging_views.get_users, name='api_get_users'),
     
     # Loans
     path('loans/', views.loans_list, name='loans_list'),

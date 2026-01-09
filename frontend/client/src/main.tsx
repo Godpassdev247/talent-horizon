@@ -47,7 +47,7 @@ const trpcClient = trpc.createClient({
       transformer: superjson,
       fetch(input, init) {
         // Get the JWT token from localStorage and include it in requests
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('frontendToken');
         const headers: Record<string, string> = {
           ...(init?.headers as Record<string, string> || {}),
         };

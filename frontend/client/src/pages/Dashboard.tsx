@@ -182,31 +182,34 @@ export default function Dashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
   
-  // Check Django authentication from localStorage
+  // Check authentication from localStorage
   const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
   
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
-    const storedToken = localStorage.getItem('token');
+    // Check for either frontendToken or token (for backwards compatibility)
+    const storedToken = localStorage.getItem('frontendToken') || localStorage.getItem('frontendToken');
     
     if (storedUser && storedToken) {
       try {
         setUser(JSON.parse(storedUser));
       } catch (e) {
         console.error('Failed to parse user from localStorage', e);
-        setLocation('/login');
+        window.location.replace('/login');
       }
     } else {
-      setLocation('/login');
+      // No auth, redirect to login
+      window.location.replace('/login');
     }
     setAuthLoading(false);
-  }, [setLocation]);
+  }, []);
   
   const logout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
-    setLocation('/login');
+    localStorage.removeItem('frontendToken');
+    window.location.replace('/login');
   };
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [showWithdrawalForm, setShowWithdrawalForm] = useState(false);
@@ -237,7 +240,7 @@ export default function Dashboard() {
   // Fetch user's applications from tRPC API
   useEffect(() => {
     const fetchApplications = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('frontendToken');
       if (!token || !user) return;
       
       try {
@@ -1317,6 +1320,18 @@ export default function Dashboard() {
                       {/* Messages Area */}
                       <div style={{flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '6px'}}>
                         <style>{`
+                          .msg-sent {
+                            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                            color: white;
+                            border: none;
+                            border-radius: 16px;
+                            padding: 10px 14px;
+                            padding-right: 60px;
+                            word-wrap: break-word;
+                            line-height: 1.5;
+                            position: relative;
+                            min-width: 80px;
+                          }
                           .msg-sent::after {
                             content: '';
                             position: absolute;
@@ -1327,6 +1342,18 @@ export default function Dashboard() {
                             border-left: 10px solid #2563eb;
                             border-top: 8px solid transparent;
                             border-bottom: 8px solid transparent;
+                          }
+                          .msg-received {
+                            background: #1f2937;
+                            color: white;
+                            border: none;
+                            border-radius: 16px;
+                            padding: 10px 14px;
+                            padding-right: 60px;
+                            word-wrap: break-word;
+                            line-height: 1.5;
+                            position: relative;
+                            min-width: 80px;
                           }
                           .msg-received::after {
                             content: '';
@@ -1343,26 +1370,18 @@ export default function Dashboard() {
                         {/* Original Message */}
                         <div style={{
                           alignSelf: selectedMessage.senderId === (user?.frontendId || user?.id) ? 'flex-end' : 'flex-start',
-                          maxWidth: '85%'
+                          maxWidth: '85%',
+                          width: 'auto'
                         }}>
                           <div 
                             className={selectedMessage.senderId === (user?.frontendId || user?.id) ? 'msg-sent' : 'msg-received'}
                             style={{
-                              background: selectedMessage.senderId === (user?.frontendId || user?.id) 
-                                ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' 
-                                : '#1f2937',
-                              color: 'white',
-                              padding: '10px 14px 28px 14px',
-                              paddingRight: '70px',
-                              borderRadius: '16px',
                               wordBreak: 'break-word',
                               overflowWrap: 'break-word',
-                              lineHeight: 1.5,
-                              position: 'relative',
-                              minWidth: '100px',
-                              display: 'inline-block',
-                              width: 'fit-content',
-                              maxWidth: '100%'
+                              display: 'block',
+                              width: 'auto',
+                              maxWidth: '100%',
+                              paddingBottom: '28px'
                             }}>
                             <span style={{fontSize: '15px', whiteSpace: 'pre-line'}}>{selectedMessage.content}</span>
                             <span style={{
@@ -1429,27 +1448,19 @@ export default function Dashboard() {
                           return (
                             <div key={reply.id} style={{
                               alignSelf: reply.senderId === (user?.frontendId || user?.id) ? 'flex-end' : 'flex-start',
-                              maxWidth: '85%'
+                              maxWidth: '85%',
+                              width: 'auto'
                             }}>
                               <div 
                                 className={reply.senderId === (user?.frontendId || user?.id) ? 'msg-sent' : 'msg-received'}
                                 style={{
-                                  background: reply.senderId === (user?.frontendId || user?.id) 
-                                    ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' 
-                                    : '#1f2937',
-                                  color: 'white',
-                                  padding: hasAttachments ? '6px 6px 28px 6px' : '10px 14px 28px 14px',
-                                  paddingRight: hasAttachments ? '6px' : '70px',
-                                  borderRadius: '16px',
                                   wordBreak: 'break-word',
                                   overflowWrap: 'break-word',
-                                  lineHeight: 1.5,
-                                  position: 'relative',
-                                  minWidth: '100px',
-                                  display: 'inline-block',
-                                  width: 'fit-content',
+                                  display: 'block',
+                                  width: 'auto',
                                   maxWidth: '100%',
-                                  overflow: 'hidden'
+                                  overflow: 'hidden',
+                                  paddingBottom: '28px'
                                 }}>
                                 
                                 {/* File Attachments Display */}
