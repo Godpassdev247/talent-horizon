@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
+// v2 - Updated bubble colors: dark for received, blue for sent
 import { 
   Search, Send, ArrowLeft, MessageSquare, Check, CheckCheck
 } from 'lucide-react';
@@ -167,7 +168,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
   }
 
   return (
-    <div className="h-[calc(100vh-200px)] md:h-[600px] flex bg-gradient-to-b from-blue-50 to-white rounded-xl overflow-hidden shadow-lg border border-blue-100">
+    <div data-testid="firebase-messages" className="h-[calc(100vh-200px)] md:h-[600px] flex bg-gradient-to-b from-blue-50 to-white rounded-xl overflow-hidden shadow-lg border border-blue-100">
       {/* Left Panel - Conversations List */}
       <div className={`${showMobileChat ? 'hidden' : 'flex'} md:flex w-full md:w-[320px] lg:w-[340px] flex-col bg-white border-r border-blue-100 flex-shrink-0`}>
         {/* Header */}
@@ -211,7 +212,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               >
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold text-lg shadow-md">
+                  <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-lg">
                     {otherParticipant.name.charAt(0).toUpperCase()}
                   </div>
                   {unreadCount > 0 && (
@@ -256,7 +257,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               >
                 <ArrowLeft className="w-5 h-5 text-blue-600" />
               </button>
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold shadow-md">
+              <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
                 {getOtherParticipant(selectedConversation).name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
@@ -270,7 +271,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-100/50">
               {messages.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center">
@@ -290,16 +291,20 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                       className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
                     >
                       <div 
-                        className={`relative max-w-[85%] sm:max-w-[75%] px-4 py-2.5 shadow-sm ${
+                        className={`relative max-w-[85%] sm:max-w-[75%] px-4 py-2.5 rounded-2xl ${
                           isOwn 
-                            ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl rounded-br-md' 
-                            : 'bg-white text-slate-800 rounded-2xl rounded-bl-md border border-blue-100'
+                            ? 'rounded-br-md' 
+                            : 'rounded-bl-md'
                         }`}
+                        style={{
+                          backgroundColor: isOwn ? '#3b82f6' : '#334155',
+                          color: 'white'
+                        }}
                       >
                         <p className="text-[15px] leading-relaxed break-words whitespace-pre-wrap">
                           {msg.content}
                         </p>
-                        <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? 'text-blue-100' : 'text-slate-400'}`}>
+                        <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? 'text-blue-100' : 'text-slate-300'}`}>
                           <span className="text-[11px]">
                             {formatMessageTime(msg.timestamp)}
                           </span>
