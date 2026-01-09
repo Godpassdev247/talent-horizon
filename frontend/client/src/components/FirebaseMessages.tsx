@@ -172,7 +172,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
       {/* Left Panel - Conversations List */}
       <div className={`${showMobileChat ? 'hidden' : 'flex'} md:flex w-full md:w-[320px] lg:w-[340px] flex-col bg-white border-r border-slate-200 flex-shrink-0`}>
         {/* Header */}
-        <div className="p-4 bg-gradient-to-r from-slate-800 to-slate-700">
+        <div className="p-4 bg-gradient-to-r from-[#1e3a5f]/90 to-[#0f2744]/80">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-xl font-bold text-white">Messages</h2>
             {totalUnreadCount > 0 && (
@@ -188,7 +188,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               placeholder="Search messages..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full py-2.5 px-3 pl-10 bg-slate-600/50 border-0 rounded-full text-sm text-white placeholder-slate-300 focus:outline-none focus:bg-slate-600/70 focus:ring-2 focus:ring-white/30 transition-all"
+              className="w-full py-2.5 px-3 pl-10 bg-[#1e3a5f]/40 border-0 rounded-full text-sm text-white placeholder-slate-300 focus:outline-none focus:bg-[#1e3a5f]/50 focus:ring-2 focus:ring-white/30 transition-all"
             />
           </div>
         </div>
@@ -212,7 +212,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               >
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center text-white font-semibold text-lg">
+                  <div className="w-12 h-12 rounded-full bg-[#1e3a5f]/70 flex items-center justify-center text-white font-semibold text-lg">
                     {otherParticipant.name.charAt(0).toUpperCase()}
                   </div>
                   {unreadCount > 0 && (
@@ -257,7 +257,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               >
                 <ArrowLeft className="w-5 h-5 text-slate-700" />
               </button>
-              <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-white font-semibold">
+              <div className="w-10 h-10 rounded-full bg-[#1e3a5f]/70 flex items-center justify-center text-white font-semibold">
                 {getOtherParticipant(selectedConversation).name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
