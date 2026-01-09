@@ -454,3 +454,43 @@ def get_users(request):
             'success': False,
             'error': str(e)
         }, status=500)
+
+
+@jwt_or_session_required
+@require_http_methods(["GET"])
+def get_users_for_firebase(request):
+    """Get all users for Firebase messaging - returns users from frontend MySQL database"""
+    try:
+        conn = get_mysql_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Get all users except the current admin
+        cursor.execute("""
+            SELECT id, name, email, role 
+            FROM users 
+            WHERE email != %s
+            ORDER BY name ASC
+        """, (request.user.email,))
+        
+        users = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        # Format users for Firebase
+        formatted_users = []
+        for user in users:
+            formatted_users.append({
+                'id': user['id'],
+                'name': user['name'] or 'Unknown User',
+                'email': user['email'] or '',
+                'role': user['role'] or 'user'
+            })
+        
+        return JsonResponse(formatted_users, safe=False)
+        
+    except Exception as e:
+        print(f"Error in get_users_for_firebase: {e}")
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': str(e)}, status=500)

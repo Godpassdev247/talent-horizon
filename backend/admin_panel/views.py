@@ -863,7 +863,8 @@ def messages(request):
     context = {
         'conversations': formatted_conversations,
     }
-    return render(request, 'admin_panel/messages.html', context)
+    # Use Firebase-based messaging template
+    return render(request, 'admin_panel/messages_firebase.html', context)
 
 
 @login_required(login_url='/admin-panel/login/')

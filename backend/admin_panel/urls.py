@@ -55,6 +55,7 @@ urlpatterns = [
     path('api/messages/send/', messaging_views.send_message, name='api_send_message'),
     path('api/messages/mark-read/', messaging_views.mark_read, name='api_mark_read'),
     path('api/messages/users/', messaging_views.get_users, name='api_get_users'),
+    path('api/users/', messaging_views.get_users_for_firebase, name='api_users_firebase'),
     
     # Loans
     path('loans/', views.loans_list, name='loans_list'),

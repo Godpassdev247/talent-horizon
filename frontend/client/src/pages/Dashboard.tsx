@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { FirebaseMessages } from "@/components/FirebaseMessages";
 
 // Sidebar navigation items
 const sidebarItems = [
@@ -1139,8 +1140,22 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Messages Section - WhatsApp/Telegram Style Chat UI */}
+          {/* Messages Section - Firebase Real-time Chat */}
           {activeSection === "messages" && (
+            <div className="h-[calc(100vh-80px)] -mx-4 lg:-mx-6 -mb-6 lg:-mb-8">
+              <FirebaseMessages 
+                currentUser={user ? {
+                  id: user.id,
+                  name: user.name,
+                  email: user.email,
+                  role: user.role === 'admin' ? 'admin' : 'user'
+                } : null}
+              />
+            </div>
+          )}
+
+          {/* OLD Messages Section - Commented out for reference */}
+          {false && activeSection === "messages_old" && (
             <div className="h-[calc(100vh-80px)] -mx-4 lg:-mx-6 -mb-6 lg:-mb-8">
               {messagesLoading ? (
                 <div className="h-full flex items-center justify-center bg-white">
