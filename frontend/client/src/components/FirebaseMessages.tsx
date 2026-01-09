@@ -446,10 +446,10 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               </div>
             </div>
 
-            {/* Messages Area - Clean WhatsApp/Telegram style */}
+            {/* Messages Area - Exact WhatsApp style */}
             <div 
               className="flex-1 overflow-y-auto bg-slate-100/50 min-h-0"
-              style={{ padding: '16px 0' }}
+              style={{ padding: '8px 0' }}
             >
               {messages.length === 0 ? (
                 <div className="h-full flex items-center justify-center" style={{ padding: '0 16px' }}>
@@ -461,7 +461,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                   </div>
                 </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                   {messages.map((msg) => {
                     const isOwn = msg.senderId === currentUser?.id;
                     const attachments = msg.attachments || [];
@@ -472,23 +472,24 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                         style={{
                           display: 'flex',
                           justifyContent: isOwn ? 'flex-end' : 'flex-start',
-                          paddingLeft: '16px',
-                          paddingRight: '16px'
+                          paddingLeft: isOwn ? '50px' : '6px',
+                          paddingRight: isOwn ? '6px' : '50px'
                         }}
                       >
                         <div 
                           style={{
                             backgroundColor: isOwn ? '#3b82f6' : '#334155',
                             color: 'white',
-                            padding: '10px 14px',
-                            borderRadius: isOwn ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                            maxWidth: 'min(70%, 320px)',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
-                            wordBreak: 'break-word'
+                            padding: '6px 12px 8px 12px',
+                            borderRadius: isOwn ? '8px 8px 0 8px' : '8px 8px 8px 0',
+                            maxWidth: '85%',
+                            boxShadow: '0 1px 1px rgba(0,0,0,0.08)',
+                            wordBreak: 'break-word',
+                            position: 'relative' as const
                           }}
                         >
                           {msg.content && msg.content !== '📎 Attachment' && (
-                            <p style={{ fontSize: '15px', lineHeight: '1.4', margin: 0 }}>
+                            <p style={{ fontSize: '15px', lineHeight: '1.35', margin: 0 }}>
                               {msg.content}
                             </p>
                           )}
@@ -502,8 +503,8 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                             display: 'flex', 
                             alignItems: 'center', 
                             justifyContent: 'flex-end', 
-                            gap: '4px', 
-                            marginTop: '4px',
+                            gap: '3px', 
+                            marginTop: '2px',
                             opacity: 0.7
                           }}>
                             <span style={{ fontSize: '11px' }}>
