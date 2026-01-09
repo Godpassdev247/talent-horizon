@@ -446,8 +446,8 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               </div>
             </div>
 
-            {/* Messages Area - Responsive WhatsApp style */}
-            <div className="flex-1 overflow-y-auto bg-slate-100/50 min-h-0 py-2 md:py-3">
+            {/* Messages Area - Mobile-first responsive design */}
+            <div className="flex-1 overflow-y-auto bg-slate-100/50 min-h-0 py-3">
               {messages.length === 0 ? (
                 <div className="h-full flex items-center justify-center px-4">
                   <div className="text-center">
@@ -458,7 +458,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                   </div>
                 </div>
               ) : (
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-2 px-3 sm:px-4">
                   {messages.map((msg) => {
                     const isOwn = msg.senderId === currentUser?.id;
                     const attachments = msg.attachments || [];
@@ -466,17 +466,15 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                     return (
                       <div 
                         key={msg.id} 
-                        className={`flex px-2 sm:px-3 md:px-4 ${
-                          isOwn 
-                            ? 'justify-end pl-10 sm:pl-16 md:pl-20' 
-                            : 'justify-start pr-10 sm:pr-16 md:pr-20'
+                        className={`flex w-full ${
+                          isOwn ? 'justify-end' : 'justify-start'
                         }`}
                       >
                         <div 
-                          className={`relative max-w-[85%] sm:max-w-[80%] md:max-w-[75%] lg:max-w-[65%] px-3 py-2 rounded-lg shadow-sm ${
+                          className={`relative max-w-[80%] sm:max-w-[75%] md:max-w-[70%] lg:max-w-[60%] px-3 py-2 rounded-2xl shadow-sm ${
                             isOwn 
-                              ? 'bg-blue-500 rounded-br-none' 
-                              : 'bg-slate-700 rounded-bl-none'
+                              ? 'bg-blue-500 rounded-br-sm ml-auto' 
+                              : 'bg-slate-700 rounded-bl-sm mr-auto'
                           }`}
                         >
                           {msg.content && msg.content !== '📎 Attachment' && (
@@ -540,9 +538,9 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               </div>
             )}
 
-            {/* Message Input - Fixed at bottom with safe area padding */}
-            <div className="flex-shrink-0 p-3 sm:p-4 bg-white border-t border-blue-100 z-10" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))' }}>
-              <div className="flex items-end gap-2 sm:gap-3">
+            {/* Message Input - Fixed at bottom with proper mobile padding */}
+            <div className="flex-shrink-0 px-2 sm:px-3 md:px-4 py-2 sm:py-3 bg-white border-t border-slate-200 z-10 safe-area-bottom">
+              <div className="flex items-center gap-2">
                 {/* File attachment button */}
                 <input
                   type="file"
@@ -554,29 +552,29 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                 />
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="p-3 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                  className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors flex items-center justify-center"
                   title="Attach file"
                 >
                   <Paperclip className="w-5 h-5" />
                 </button>
                 
-                <div className="flex-1 relative">
+                <div className="flex-1 min-w-0">
                   <textarea
                     placeholder="Type a message..."
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     onKeyPress={handleKeyPress}
                     rows={1}
-                    className="w-full py-3 px-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm resize-none focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all max-h-32 overflow-y-auto"
-                    style={{ minHeight: '48px' }}
+                    className="w-full py-2.5 px-3 sm:px-4 bg-slate-50 border border-slate-200 rounded-full text-sm resize-none focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all"
+                    style={{ minHeight: '40px', maxHeight: '100px' }}
                   />
                 </div>
                 <button
                   onClick={handleSendMessage}
                   disabled={(!messageInput.trim() && selectedFiles.length === 0) || sending}
-                  className={`p-3 rounded-full transition-all active:scale-95 shadow-md ${
+                  className={`flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full transition-all active:scale-95 flex items-center justify-center ${
                     (messageInput.trim() || selectedFiles.length > 0) && !sending
-                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:shadow-lg'
+                      ? 'bg-blue-500 text-white shadow-md hover:bg-blue-600'
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                   }`}
                 >
