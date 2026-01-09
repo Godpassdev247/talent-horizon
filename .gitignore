@@ -56,3 +56,16 @@ htmlcov/
 *.bak
 *.tmp
 *.temp
+
+# Local development
+frontend/local.db
+frontend/.pnpm-debug.log
+backend/local.db
+
+# Uploads and media
+media/
+uploads/
+
+# Generated files
+frontend/dist/
+backend/staticfiles/
