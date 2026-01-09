@@ -1142,7 +1142,7 @@ export default function Dashboard() {
 
           {/* Messages Section - Firebase Real-time Chat */}
           {activeSection === "messages" && (
-            <div className="h-[calc(100vh-80px)] -mx-4 lg:-mx-6 -mb-6 lg:-mb-8">
+            <div className="h-[calc(100vh-64px)] -mx-4 lg:-mx-6 -my-4 lg:-my-6">
               <FirebaseMessages 
                 currentUser={user ? {
                   id: user.id,

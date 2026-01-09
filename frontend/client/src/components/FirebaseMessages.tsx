@@ -130,7 +130,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
 
   if (loading) {
     return (
-      <div className="h-[calc(100vh-200px)] md:h-[600px] flex items-center justify-center bg-gradient-to-b from-blue-50 to-white rounded-xl">
+      <div className="h-full flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-slate-600">Loading messages...</p>
@@ -141,7 +141,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
 
   if (error) {
     return (
-      <div className="h-[calc(100vh-200px)] md:h-[600px] flex items-center justify-center bg-gradient-to-b from-blue-50 to-white rounded-xl">
+      <div className="h-full flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
         <div className="text-center px-4">
           <MessageSquare className="w-16 h-16 text-red-300 mx-auto mb-4" />
           <p className="text-red-600 font-medium">Error loading messages</p>
@@ -153,7 +153,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
 
   if (conversations.length === 0) {
     return (
-      <div className="h-[calc(100vh-200px)] md:h-[600px] flex items-center justify-center bg-gradient-to-b from-blue-50 to-white rounded-xl">
+      <div className="h-full flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
         <div className="text-center px-4">
           <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <MessageSquare className="w-10 h-10 text-blue-500" />
@@ -168,7 +168,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
   }
 
   return (
-    <div data-testid="firebase-messages" className="h-[calc(100vh-200px)] md:h-[600px] flex bg-gradient-to-b from-blue-50 to-white rounded-xl overflow-hidden shadow-lg border border-blue-100">
+    <div data-testid="firebase-messages" className="h-full flex bg-gradient-to-b from-blue-50 to-white overflow-hidden">
       {/* Left Panel - Conversations List */}
       <div className={`${showMobileChat ? 'hidden' : 'flex'} md:flex w-full md:w-[320px] lg:w-[340px] flex-col bg-white border-r border-blue-100 flex-shrink-0`}>
         {/* Header */}
