@@ -246,11 +246,11 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
       </div>
 
       {/* Right Panel - Chat View */}
-      <div className={`${showMobileChat ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-gradient-to-b from-blue-50/50 to-white`}>
+      <div className={`${showMobileChat ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-gradient-to-b from-blue-50/50 to-white overflow-hidden`}>
         {selectedConversation ? (
-          <>
-            {/* Chat Header */}
-            <div className="flex items-center gap-3 p-4 bg-white border-b border-blue-100 shadow-sm">
+          <div className="flex flex-col h-full">
+            {/* Chat Header - Fixed at top */}
+            <div className="flex-shrink-0 flex items-center gap-3 p-4 bg-white border-b border-blue-100 shadow-sm z-10">
               <button 
                 className="md:hidden p-2 hover:bg-blue-50 rounded-full transition-colors active:scale-95"
                 onClick={handleBackToList}
@@ -270,8 +270,8 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               </div>
             </div>
 
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-100/50">
+            {/* Messages Area - Scrollable middle section */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-100/50 min-h-0">
               {messages.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center">
@@ -322,8 +322,8 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Message Input */}
-            <div className="p-3 sm:p-4 bg-white border-t border-blue-100">
+            {/* Message Input - Fixed at bottom */}
+            <div className="flex-shrink-0 p-3 sm:p-4 bg-white border-t border-blue-100 z-10">
               <div className="flex items-end gap-2 sm:gap-3">
                 <div className="flex-1 relative">
                   <textarea
@@ -349,7 +349,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                 </button>
               </div>
             </div>
-          </>
+          </div>
         ) : (
           /* No conversation selected - Desktop only */
           <div className="hidden md:flex flex-1 items-center justify-center">
