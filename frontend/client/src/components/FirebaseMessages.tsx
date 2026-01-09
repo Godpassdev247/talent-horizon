@@ -130,9 +130,9 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
+      <div className="h-full flex items-center justify-center bg-gradient-to-b from-slate-50 to-white">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="w-12 h-12 border-4 border-slate-700 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-slate-600">Loading messages...</p>
         </div>
       </div>
@@ -141,7 +141,7 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
 
   if (error) {
     return (
-      <div className="h-full flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
+      <div className="h-full flex items-center justify-center bg-gradient-to-b from-slate-50 to-white">
         <div className="text-center px-4">
           <MessageSquare className="w-16 h-16 text-red-300 mx-auto mb-4" />
           <p className="text-red-600 font-medium">Error loading messages</p>
@@ -153,10 +153,10 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
 
   if (conversations.length === 0) {
     return (
-      <div className="h-full flex items-center justify-center bg-gradient-to-b from-blue-50 to-white">
+      <div className="h-full flex items-center justify-center bg-gradient-to-b from-slate-50 to-white">
         <div className="text-center px-4">
-          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <MessageSquare className="w-10 h-10 text-blue-500" />
+          <div className="w-20 h-20 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
+            <MessageSquare className="w-10 h-10 text-slate-600" />
           </div>
           <p className="text-slate-700 font-semibold text-lg">No messages yet</p>
           <p className="text-slate-400 text-sm mt-2 max-w-xs mx-auto">
@@ -168,27 +168,27 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
   }
 
   return (
-    <div data-testid="firebase-messages" className="h-full flex bg-gradient-to-b from-blue-50 to-white overflow-hidden">
+    <div data-testid="firebase-messages" className="h-full flex bg-gradient-to-b from-slate-50 to-white overflow-hidden">
       {/* Left Panel - Conversations List */}
-      <div className={`${showMobileChat ? 'hidden' : 'flex'} md:flex w-full md:w-[320px] lg:w-[340px] flex-col bg-white border-r border-blue-100 flex-shrink-0`}>
+      <div className={`${showMobileChat ? 'hidden' : 'flex'} md:flex w-full md:w-[320px] lg:w-[340px] flex-col bg-white border-r border-slate-200 flex-shrink-0`}>
         {/* Header */}
-        <div className="p-4 bg-gradient-to-r from-blue-600 to-blue-500">
+        <div className="p-4 bg-gradient-to-r from-slate-800 to-slate-700">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-xl font-bold text-white">Messages</h2>
             {totalUnreadCount > 0 && (
-              <span className="bg-white text-blue-600 text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
+              <span className="bg-amber-400 text-slate-800 text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">
                 {totalUnreadCount}
               </span>
             )}
           </div>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-300" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input 
               type="text"
               placeholder="Search messages..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full py-2.5 px-3 pl-10 bg-blue-500/30 border-0 rounded-full text-sm text-white placeholder-blue-200 focus:outline-none focus:bg-blue-500/50 focus:ring-2 focus:ring-white/30 transition-all"
+              className="w-full py-2.5 px-3 pl-10 bg-slate-600/50 border-0 rounded-full text-sm text-white placeholder-slate-300 focus:outline-none focus:bg-slate-600/70 focus:ring-2 focus:ring-white/30 transition-all"
             />
           </div>
         </div>
@@ -205,14 +205,14 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
                 key={conv.id} 
                 className={`flex gap-3 p-4 cursor-pointer border-b border-slate-100 transition-all active:scale-[0.98] ${
                   isSelected 
-                    ? 'bg-blue-50 border-l-4 border-l-blue-500' 
+                    ? 'bg-amber-50 border-l-4 border-l-amber-500' 
                     : 'hover:bg-slate-50 border-l-4 border-l-transparent'
-                } ${unreadCount > 0 ? 'bg-blue-50/50' : ''}`}
+                } ${unreadCount > 0 ? 'bg-amber-50/50' : ''}`}
                 onClick={() => handleSelectConversation(conv.id)}
               >
                 {/* Avatar */}
                 <div className="relative flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-lg">
+                  <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center text-white font-semibold text-lg">
                     {otherParticipant.name.charAt(0).toUpperCase()}
                   </div>
                   {unreadCount > 0 && (
@@ -246,25 +246,25 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
       </div>
 
       {/* Right Panel - Chat View */}
-      <div className={`${showMobileChat ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-gradient-to-b from-blue-50/50 to-white overflow-hidden`}>
+      <div className={`${showMobileChat ? 'flex' : 'hidden'} md:flex flex-1 flex-col bg-gradient-to-b from-slate-50/50 to-white overflow-hidden`}>
         {selectedConversation ? (
           <div className="flex flex-col h-full">
             {/* Chat Header - Fixed at top */}
-            <div className="flex-shrink-0 flex items-center gap-3 p-4 bg-white border-b border-blue-100 shadow-sm z-10">
+            <div className="flex-shrink-0 flex items-center gap-3 p-4 bg-white border-b border-slate-200 shadow-sm z-10">
               <button 
-                className="md:hidden p-2 hover:bg-blue-50 rounded-full transition-colors active:scale-95"
+                className="md:hidden p-2 hover:bg-slate-100 rounded-full transition-colors active:scale-95"
                 onClick={handleBackToList}
               >
-                <ArrowLeft className="w-5 h-5 text-blue-600" />
+                <ArrowLeft className="w-5 h-5 text-slate-700" />
               </button>
-              <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold">
+              <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-white font-semibold">
                 {getOtherParticipant(selectedConversation).name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-slate-800 truncate">
                   {getOtherParticipant(selectedConversation).name}
                 </h3>
-                <p className="text-xs text-blue-500 font-medium">
+                <p className="text-xs text-amber-600 font-medium">
                   {getOtherParticipant(selectedConversation).role === 'admin' ? 'Recruiter' : 'Job Seeker'}
                 </p>
               </div>
@@ -275,8 +275,8 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
               {messages.length === 0 ? (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <MessageSquare className="w-8 h-8 text-blue-400" />
+                    <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <MessageSquare className="w-8 h-8 text-slate-500" />
                     </div>
                     <p className="text-slate-500 text-sm">No messages yet. Start the conversation!</p>
                   </div>
@@ -354,8 +354,8 @@ export function FirebaseMessages({ currentUser }: FirebaseMessagesProps) {
           /* No conversation selected - Desktop only */
           <div className="hidden md:flex flex-1 items-center justify-center">
             <div className="text-center">
-              <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="w-12 h-12 text-blue-400" />
+              <div className="w-24 h-24 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="w-12 h-12 text-slate-500" />
               </div>
               <h3 className="text-xl font-semibold text-slate-700 mb-2">Select a conversation</h3>
               <p className="text-slate-400 text-sm max-w-xs mx-auto">
