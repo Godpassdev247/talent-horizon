@@ -83,7 +83,7 @@ export default function DemoChatLayout() {
   };
 
   return (
-    <div className="h-[100dvh] flex flex-col overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f0f7ff 50%, #e6f0ff 100%)' }}>
+    <div className="h-full flex flex-col overflow-hidden relative" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f0f7ff 50%, #e6f0ff 100%)' }}>
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden relative">
         {/* Sidebar */}
@@ -187,6 +187,7 @@ export default function DemoChatLayout() {
             <DemoChatArea 
               onBack={handleBackToList}
               showBackButton={isMobile || isTablet}
+              onShowSidebar={!showSidebar ? () => setShowSidebar(true) : undefined}
             />
           ) : (
             <div className="flex-1 flex flex-col">
@@ -198,16 +199,7 @@ export default function DemoChatLayout() {
           )}
         </main>
 
-        {/* Sidebar Toggle Button - Desktop and Tablet (when sidebar is hidden) */}
-        {!isMobile && !showSidebar && (
-          <button
-            onClick={() => setShowSidebar(true)}
-            className="fixed top-4 left-4 z-50 p-2 hover:bg-[oklch(0.95_0.01_250)] rounded-lg transition-colors"
-            title="Show sidebar"
-          >
-            <PanelLeft className="w-5 h-5 text-[oklch(0.35_0.08_250)]" />
-          </button>
-        )}
+
 
         {/* Contact Search Modal */}
         <AnimatePresence>

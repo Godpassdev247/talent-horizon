@@ -44,7 +44,7 @@ export default function DemoConversationList({ onSelectConversation }: DemoConve
   };
 
   return (
-    <div className="overflow-y-auto h-full scrollbar-thin p-1.5 sm:p-2">
+    <div className="overflow-y-auto h-full scrollbar-thin p-1.5 sm:p-2 relative z-20">
       <div className="space-y-0.5 sm:space-y-1">
         {conversations.map((conversation, index) => {
           const partnerId = conversation.participants.find(p => p !== currentUser?.uid);
@@ -61,9 +61,9 @@ export default function DemoConversationList({ onSelectConversation }: DemoConve
               onClick={() => handleSelect(conversation.id)}
               className={`
                 w-full p-2.5 sm:p-3 rounded-xl flex items-center gap-2.5 sm:gap-3 
-                transition-all duration-200 text-left
+                transition-all duration-200 text-left cursor-pointer
                 min-h-[64px] sm:min-h-[72px]
-                active:scale-[0.98]
+                active:scale-[0.98] relative z-10
                 hover:bg-[oklch(0.95_0.01_250)] border border-transparent
               `}
             >

@@ -67,6 +67,7 @@ interface FirebaseChatContextType {
   contacts: ChatUser[];
   conversations: ChatConversation[];
   messages: { [convId: string]: ChatMessage[] };
+  currentMessages: ChatMessage[];
   currentConversation: ChatConversation | null;
   currentChatPartner: ChatUser | null;
   isPartnerTyping: boolean;
@@ -316,12 +317,16 @@ export const FirebaseChatProvider: React.FC<FirebaseChatProviderProps> = ({ chil
     );
   }, [contacts]);
 
+  // Compute currentMessages from the messages object
+  const currentMessages = currentConversation ? (messages[currentConversation.id] || []) : [];
+
   const value: FirebaseChatContextType = {
     isDemo: false,
     currentUser,
     contacts,
     conversations,
     messages,
+    currentMessages,
     currentConversation,
     currentChatPartner,
     isPartnerTyping,

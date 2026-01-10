@@ -1143,7 +1143,7 @@ export default function Dashboard() {
 
           {/* Messages Section - Firebase Real-time Messenger */}
           {activeSection === "messages" && user && (
-            <div className="h-[calc(100vh-80px)] md:h-[calc(100vh-64px)] -mx-4 lg:-mx-6 -my-4 lg:-my-6 fixed md:relative inset-x-0 md:inset-auto top-[80px] md:top-[64px] bottom-0 md:top-auto md:bottom-auto z-30 md:z-auto">
+            <div className="h-[calc(100vh-80px)] md:h-[calc(100vh-64px)] w-full overflow-hidden">
               <FirebaseChatProvider initialUser={{
                 id: user.id,
                 name: user.name,
