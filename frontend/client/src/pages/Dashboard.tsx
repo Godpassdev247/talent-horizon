@@ -23,7 +23,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import DemoChatLayout from "@/components/DemoChatLayout";
-import { DemoProvider } from "@/contexts/DemoContext";
+import { FirebaseChatProvider } from "@/contexts/FirebaseChatContext";
 
 // Sidebar navigation items
 const sidebarItems = [
@@ -1141,12 +1141,17 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Messages Section - New Demo Messenger */}
+          {/* Messages Section - Firebase Real-time Messenger */}
           {activeSection === "messages" && user && (
             <div className="h-[calc(100vh-80px)] md:h-[calc(100vh-64px)] -mx-4 lg:-mx-6 -my-4 lg:-my-6 fixed md:relative inset-x-0 md:inset-auto top-[80px] md:top-[64px] bottom-0 md:top-auto md:bottom-auto z-30 md:z-auto">
-              <DemoProvider>
+              <FirebaseChatProvider initialUser={{
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role === 'admin' ? 'admin' : 'user'
+              }}>
                 <DemoChatLayout />
-              </DemoProvider>
+              </FirebaseChatProvider>
             </div>
           )}
 

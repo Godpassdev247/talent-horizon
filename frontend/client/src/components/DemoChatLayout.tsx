@@ -15,7 +15,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useDemo } from '@/contexts/DemoContext';
+import { useDemo } from '@/contexts/FirebaseChatContext';
 import DemoConversationList from './DemoConversationList';
 import DemoChatArea from './DemoChatArea';
 import DemoContactSearch from './DemoContactSearch';

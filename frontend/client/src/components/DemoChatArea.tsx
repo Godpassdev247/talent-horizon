@@ -13,7 +13,7 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { useDemo, FileAttachment } from '@/contexts/DemoContext';
+import { useDemo, FileAttachment } from '@/contexts/FirebaseChatContext';
 import { formatLastSeen } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Send, Check, CheckCheck, Paperclip, X, Download, FileText, Film, Image as ImageIcon } from 'lucide-react';

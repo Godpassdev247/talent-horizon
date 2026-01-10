@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useDemo, DemoUser } from '@/contexts/DemoContext';
+import { useDemo, ChatUser as DemoUser } from '@/contexts/FirebaseChatContext';
 import { motion } from 'framer-motion';
 import { X, Search, UserPlus } from 'lucide-react';
 

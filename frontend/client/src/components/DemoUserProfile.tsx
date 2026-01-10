@@ -10,7 +10,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useDemo } from '@/contexts/DemoContext';
+import { useDemo } from '@/contexts/FirebaseChatContext';
 import { motion } from 'framer-motion';
 import { X, LogOut, Loader2, Settings, Bell, Shield, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';

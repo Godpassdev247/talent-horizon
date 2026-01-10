@@ -9,7 +9,7 @@
  * - Tablet/Desktop: Standard sizing with hover states
  */
 
-import { useDemo } from '@/contexts/DemoContext';
+import { useDemo } from '@/contexts/FirebaseChatContext';
 import { formatDistanceToNow } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
