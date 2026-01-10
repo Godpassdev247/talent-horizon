@@ -351,7 +351,7 @@ export default function DemoChatArea({ onBack, showBackButton = true }: DemoChat
   }
 
   return (
-    <div className="flex flex-col h-full" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f0f7ff 50%, #e6f0ff 100%)' }}>
+    <div className="flex flex-col h-full relative" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f0f7ff 50%, #e6f0ff 100%)' }}>
       {/* Header - removed 3-dot menu */}
       <header className="bg-[oklch(0.97_0.01_240)] border-b border-[oklch(0.92_0.01_250)] py-4 sm:py-5 px-3 sm:px-4 safe-area-top">
         <div className="flex items-center gap-3 sm:gap-4">
@@ -531,8 +531,8 @@ export default function DemoChatArea({ onBack, showBackButton = true }: DemoChat
         )}
       </AnimatePresence>
 
-      {/* Input Area */}
-      <div className="bg-white/80 backdrop-blur-sm border-t border-[oklch(0.9_0.01_250)] p-2 sm:p-4 safe-area-bottom">
+      {/* Input Area - Fixed at bottom */}
+      <div className="sticky bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-[oklch(0.9_0.01_250)] p-2 sm:p-3 md:p-4 safe-area-bottom z-10">
         <div className="flex items-end gap-2 sm:gap-3">
           {/* File upload button */}
           <input
