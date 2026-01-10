@@ -396,3 +396,175 @@ html, body {
   background-color: oklch(0.68 0.19 35 / 0.3);
   color: oklch(0.22 0.05 250);
 }
+
+
+/* =====================================================
+   MESSENGER APP STYLES - Liquid Glass Design
+   ===================================================== */
+
+@layer components {
+  /* Glass panel effects */
+  .glass-panel {
+    background: oklch(0.98 0.01 250 / 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid oklch(0.9 0.01 250);
+    box-shadow: 0 2px 8px oklch(0 0 0 / 0.08);
+  }
+  
+  .glass-panel-strong {
+    background: oklch(0.25 0.08 250);
+    border: 1px solid oklch(0.35 0.06 250);
+    box-shadow: 0 4px 16px oklch(0 0 0 / 0.15);
+  }
+  
+  /* Message bubbles */
+  .message-bubble-sent {
+    background: oklch(0.35 0.1 250);
+    color: white;
+    border-radius: 1.25rem 1.25rem 0.25rem 1.25rem;
+    box-shadow: 0 2px 8px oklch(0.35 0.1 250 / 0.3);
+  }
+  
+  .message-bubble-received {
+    background: oklch(0.95 0.01 250);
+    color: oklch(0.2 0.05 250);
+    border: 1px solid oklch(0.9 0.01 250);
+    border-radius: 1.25rem 1.25rem 1.25rem 0.25rem;
+    box-shadow: 0 2px 8px oklch(0 0 0 / 0.05);
+  }
+  
+  /* Online indicator */
+  .online-indicator {
+    width: 12px;
+    height: 12px;
+    background: oklch(0.7 0.2 145);
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 4px oklch(0.7 0.2 145 / 0.5);
+  }
+  
+  .offline-indicator {
+    width: 12px;
+    height: 12px;
+    background: oklch(0.7 0.02 250);
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+  
+  /* Typing indicator */
+  .typing-dot {
+    width: 8px;
+    height: 8px;
+    background: oklch(0.5 0.05 250);
+    border-radius: 50%;
+    animation: typing-bounce 1.4s ease-in-out infinite;
+  }
+  
+  .typing-dot:nth-child(1) { animation-delay: 0s; }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  
+  /* Unread badge */
+  .unread-badge {
+    background: oklch(0.55 0.22 25);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    box-shadow: 0 2px 4px oklch(0.55 0.22 25 / 0.3);
+  }
+  
+  /* Input field style for messenger */
+  .input-glass {
+    background: oklch(0.97 0.01 250);
+    border: 1px solid oklch(0.9 0.01 250);
+    transition: all 0.3s ease;
+  }
+  
+  .input-glass:focus {
+    background: oklch(1 0 0);
+    border-color: oklch(0.35 0.1 250);
+    box-shadow: 0 0 0 3px oklch(0.35 0.1 250 / 0.15);
+  }
+  
+  /* Button styles for messenger */
+  .btn-glass {
+    background: oklch(0.97 0.01 250);
+    border: 1px solid oklch(0.9 0.01 250);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-glass:hover {
+    background: oklch(0.94 0.01 250);
+    border-color: oklch(0.85 0.02 250);
+  }
+  
+  .btn-primary-glass {
+    background: oklch(0.35 0.1 250);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-primary-glass:hover {
+    background: oklch(0.4 0.1 250);
+    box-shadow: 0 4px 12px oklch(0.35 0.1 250 / 0.3);
+  }
+  
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, oklch(0.7 0.15 200), oklch(0.6 0.15 280));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Custom scrollbar for messenger */
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.8 0.02 250) transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: oklch(0.8 0.02 250);
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: oklch(0.7 0.02 250);
+  }
+}
+
+/* Messenger Animations */
+@keyframes typing-bounce {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+  30% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 4px oklch(0.7 0.2 145 / 0.5);
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 8px oklch(0.7 0.2 145 / 0.8);
+  }
+}
