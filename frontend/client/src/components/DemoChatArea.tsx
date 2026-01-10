@@ -394,7 +394,7 @@ export default function DemoChatArea({ onBack, showBackButton = true }: DemoChat
       </header>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-4">
+      <div className="flex-1 overflow-y-auto custom-scrollbar px-4 sm:px-6 md:px-8 py-3 sm:py-4">
         <AnimatePresence initial={false}>
           {currentMessages.map((msg, index) => {
             const isSent = msg.senderId === currentUser?.uid;
@@ -417,18 +417,18 @@ export default function DemoChatArea({ onBack, showBackButton = true }: DemoChat
                   </div>
                 )}
                 
-                <motion.div
+                  <motion.div
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
-                  className={`flex flex-col ${isSent ? 'items-end' : 'items-start'} ${isGrouped ? 'mt-0' : 'mt-0.5'}`}
+                  className={`flex flex-col ${isSent ? 'items-end pr-1' : 'items-start pl-1'} ${isGrouped ? 'mt-0' : 'mt-0.5'}`}
                 >
                   {/* Message Bubble */}
                   <div 
                     className={`
-                      max-w-[85%] sm:max-w-[75%] lg:max-w-[65%]
-                      ${isSent ? 'message-bubble-sent' : 'message-bubble-received'} 
+                      max-w-[80%] sm:max-w-[75%] md:max-w-[70%] lg:max-w-[65%]
+                      ${isSent ? 'message-bubble-sent mr-2' : 'message-bubble-received ml-2'} 
                       ${msg.attachment ? 'p-1.5' : 'px-3 sm:px-4 py-1.5 sm:py-2'}
                     `}
                   >
@@ -452,7 +452,7 @@ export default function DemoChatArea({ onBack, showBackButton = true }: DemoChat
                   </div>
                   
                   {/* Timestamp OUTSIDE bubble */}
-                  <div className={`flex items-center gap-1 ${isSent ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`flex items-center gap-1 ${isSent ? 'justify-end mr-2' : 'justify-start ml-2'}`}>
                     <span className="text-[10px] sm:text-[11px] text-[oklch(0.5_0.03_250)]">
                       {formatBubbleTime(msg.timestamp)}
                     </span>
@@ -481,9 +481,9 @@ export default function DemoChatArea({ onBack, showBackButton = true }: DemoChat
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="flex items-start mt-2"
+              className="flex items-start mt-2 pl-1"
             >
-              <div className="message-bubble-received px-4 py-3 flex items-center gap-1.5">
+              <div className="message-bubble-received px-4 py-3 ml-2 flex items-center gap-1.5">
                 <div className="typing-dot" />
                 <div className="typing-dot" />
                 <div className="typing-dot" />
