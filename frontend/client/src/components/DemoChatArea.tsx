@@ -354,7 +354,24 @@ export default function DemoChatArea({ onBack, showBackButton, onShowSidebar }: 
     setTypingStatus(false);
     
     try {
-      await sendMessage(message.trim(), pendingFile || undefined);
+      // Convert File to FileAttachment if there's a pending file
+      let attachment: FileAttachment | undefined;
+      if (pendingFile) {
+        const fileType = pendingFile.type.startsWith('image/') ? 'image' :
+                         pendingFile.type.startsWith('video/') ? 'video' :
+                         pendingFile.type === 'application/pdf' ? 'pdf' :
+                         pendingFile.type.includes('document') ? 'document' : 'other';
+        attachment = {
+          id: `file-${Date.now()}`,
+          name: pendingFile.name,
+          type: fileType,
+          url: URL.createObjectURL(pendingFile),
+          size: pendingFile.size,
+          mimeType: pendingFile.type
+        };
+      }
+      
+      await sendMessage(message.trim(), attachment);
       setMessage('');
       setPendingFile(null);
     } catch (error) {

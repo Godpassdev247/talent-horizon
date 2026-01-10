@@ -15,6 +15,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import { useDemo } from '@/contexts/FirebaseChatContext';
 import DemoConversationList from './DemoConversationList';
 import DemoChatArea from './DemoChatArea';
@@ -75,11 +76,16 @@ export default function DemoChatLayout() {
     setShowSidebar(true);
   };
 
+  const [, setLocation] = useLocation();
+
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
-    if (tab !== 'message') {
-      toast.info(`${tab === 'application' ? 'Application' : 'Finance'} feature coming soon!`);
+    if (tab === 'application') {
+      setLocation('/dashboard/applications');
+    } else if (tab === 'finance') {
+      setLocation('/dashboard/financial');
     }
+    // 'message' tab stays on current page
   };
 
   return (

@@ -80,6 +80,7 @@ interface FirebaseChatContextType {
   clearCurrentConversation: () => void;
   searchContacts: (term: string) => ChatUser[];
   setCurrentUser: (user: ChatUser | null) => void;
+  setTypingStatus: (isTyping: boolean) => void;
 }
 
 const FirebaseChatContext = createContext<FirebaseChatContextType | undefined>(undefined);
@@ -320,6 +321,12 @@ export const FirebaseChatProvider: React.FC<FirebaseChatProviderProps> = ({ chil
   // Compute currentMessages from the messages object
   const currentMessages = currentConversation ? (messages[currentConversation.id] || []) : [];
 
+  // Set typing status (no-op for now, could be implemented with Firebase presence)
+  const setTypingStatus = useCallback((isTyping: boolean) => {
+    // Could implement typing indicator via Firebase in the future
+    console.log('Typing status:', isTyping);
+  }, []);
+
   const value: FirebaseChatContextType = {
     isDemo: false,
     currentUser,
@@ -338,7 +345,8 @@ export const FirebaseChatProvider: React.FC<FirebaseChatProviderProps> = ({ chil
     sendMessage: sendMessageHandler,
     clearCurrentConversation,
     searchContacts,
-    setCurrentUser
+    setCurrentUser,
+    setTypingStatus
   };
 
   return (
