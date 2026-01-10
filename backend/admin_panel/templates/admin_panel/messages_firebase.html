@@ -293,21 +293,18 @@
         background: #3b82f6;
         color: white;
         border-bottom-right-radius: 4px;
-        margin-left: 60px;
     }
     
     .message-row.received .message-bubble {
         background: white;
         color: #1e293b;
         border-bottom-left-radius: 4px;
-        margin-right: 60px;
         box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
     
     .message-text {
         font-size: 14px;
         line-height: 1.5;
-        margin-bottom: 4px;
     }
     
     .message-time {
@@ -322,6 +319,47 @@
     
     .message-row.received .message-time {
         color: #94a3b8;
+    }
+    
+    /* Message wrapper for timestamp outside bubble */
+    .message-wrapper {
+        display: flex;
+        flex-direction: column;
+        max-width: 70%;
+    }
+    
+    .message-row.sent .message-wrapper {
+        align-items: flex-end;
+        margin-left: 60px;
+        margin-right: 8px;
+    }
+    
+    .message-row.received .message-wrapper {
+        align-items: flex-start;
+        margin-right: 60px;
+        margin-left: 8px;
+    }
+    
+    .message-time-outside {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 4px;
+        padding: 0 4px;
+    }
+    
+    .message-row.sent .message-time-outside {
+        justify-content: flex-end;
+    }
+    
+    .message-row.received .message-time-outside {
+        justify-content: flex-start;
+    }
+    
+    .message-row.sent .message-time-outside svg {
+        color: #3b82f6;
     }
     
     /* Message Input */
@@ -573,6 +611,119 @@
         padding: 4px 12px;
         border-radius: 12px;
     }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .messages-wrapper {
+            margin: -16px;
+            height: calc(100vh - 80px);
+        }
+        
+        .messages-container {
+            flex-direction: column;
+        }
+        
+        .conversations-panel {
+            width: 100%;
+            min-width: 100%;
+            height: 100%;
+            border-right: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            transition: transform 0.3s ease;
+        }
+        
+        .conversations-panel.hidden {
+            transform: translateX(-100%);
+        }
+        
+        .chat-panel {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        
+        .chat-header {
+            padding: 12px 16px;
+        }
+        
+        .back-button {
+            display: flex !important;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            border: none;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+        
+        .back-button:hover {
+            background: #e2e8f0;
+        }
+        
+        .chat-messages {
+            padding: 16px;
+        }
+        
+        .message-row {
+            padding: 0 8px;
+        }
+        
+        .message-bubble {
+            max-width: 85%;
+        }
+        
+        .message-row.sent .message-wrapper {
+            margin-left: 40px;
+            margin-right: 8px;
+        }
+        
+        .message-row.received .message-wrapper {
+            margin-right: 40px;
+            margin-left: 8px;
+        }
+        
+        .chat-input-container {
+            padding: 12px 16px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+        }
+        
+        .file-upload-btn,
+        .send-btn {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .chat-input {
+            padding: 10px 14px;
+            min-height: 40px;
+        }
+    }
+    
+    /* Tablet */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .conversations-panel {
+            width: 300px;
+            min-width: 300px;
+        }
+        
+        .message-bubble {
+            max-width: 75%;
+        }
+    }
+    
+    /* Back button hidden on desktop */
+    .back-button {
+        display: none;
+    }
 </style>
 {% endblock %}
 
@@ -777,6 +928,11 @@
         const initials = otherParticipant?.name?.split(' ').map(n => n[0]).join('').toUpperCase() || '?';
         
         document.getElementById('chatHeader').innerHTML = `
+            <button class="back-button" onclick="goBackToConversations()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                    <path d="m15 18-6-6 6-6"/>
+                </svg>
+            </button>
             <div class="chat-header-avatar">${initials}</div>
             <div class="chat-header-info">
                 <div class="chat-header-name">
@@ -787,6 +943,11 @@
                 </div>
             </div>
         `;
+        
+        // Hide conversations panel on mobile
+        if (window.innerWidth <= 768) {
+            document.querySelector('.conversations-panel').classList.add('hidden');
+        }
         
         // Subscribe to messages
         if (messagesUnsubscribe) messagesUnsubscribe();
@@ -852,13 +1013,15 @@
             
             html += `
                 <div class="message-row ${isSent ? 'sent' : 'received'}">
-                    <div class="message-bubble">
-                        <div class="message-text">${escapeHtml(msg.content)}</div>
-                        ${msg.attachments?.length ? renderAttachments(msg.attachments) : ''}
-                        <div class="message-time">
+                    <div class="message-wrapper">
+                        <div class="message-bubble">
+                            <div class="message-text">${escapeHtml(msg.content)}</div>
+                            ${msg.attachments?.length ? renderAttachments(msg.attachments) : ''}
+                        </div>
+                        <div class="message-time-outside">
                             ${formatBubbleTime(time)}
                             ${isSent ? `
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     ${msg.isRead ? '<path d="M18 6 7 17l-5-5"/><path d="m22 10-9.5 9.5-3-3"/>' : '<path d="M20 6 9 17l-5-5"/>'}
                                 </svg>
                             ` : ''}
@@ -1010,6 +1173,13 @@
     
     window.closeImagePreview = function() {
         document.getElementById('imagePreviewModal').style.display = 'none';
+    };
+    
+    // Go back to conversations list (mobile)
+    window.goBackToConversations = function() {
+        document.querySelector('.conversations-panel').classList.remove('hidden');
+        currentConversation = null;
+        renderConversations();
     };
     
     // Helper functions
