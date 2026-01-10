@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-from . import messaging_views
+# messaging_views removed
 
 app_name = 'admin_panel'
 
@@ -45,17 +45,7 @@ urlpatterns = [
     path('applications/<int:app_id>/', views.application_detail, name='application_detail'),
     path('applications/<int:app_id>/status/', views.application_status, name='application_status'),
     
-    # Messages - Main View
-    path('messages/', views.messages, name='messages'),
-    
-    # Messages - API Endpoints
-    path('messaging/start-conversation/', messaging_views.start_conversation, name='api_start_conversation'),
-    path('api/messages/conversations/', messaging_views.get_conversations, name='api_get_conversations'),
-    path('api/messages/conversations/<str:conversation_id>/', messaging_views.get_conversation, name='api_get_conversation'),
-    path('api/messages/send/', messaging_views.send_message, name='api_send_message'),
-    path('api/messages/mark-read/', messaging_views.mark_read, name='api_mark_read'),
-    path('api/messages/users/', messaging_views.get_users, name='api_get_users'),
-    path('api/users/', messaging_views.get_users_for_firebase, name='api_users_firebase'),
+    # Messages removed
     
     # Loans
     path('loans/', views.loans_list, name='loans_list'),

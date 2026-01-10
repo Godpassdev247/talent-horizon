@@ -22,8 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import DemoChatLayout from "@/components/DemoChatLayout";
-import { FirebaseChatProvider } from "@/contexts/FirebaseChatContext";
+// Messaging system removed
 
 // Sidebar navigation items
 const sidebarItems = [
@@ -31,7 +30,6 @@ const sidebarItems = [
   { id: "applications", label: "Applications", icon: Briefcase },
   { id: "saved", label: "Saved Jobs", icon: Bookmark },
   { id: "resumes", label: "Resumes", icon: FileText },
-  { id: "messages", label: "Messages", icon: MessageSquare },
   { id: "calendar", label: "Calendar", icon: Calendar },
   { id: "financial", label: "Financial", icon: TrendingUp },
   { id: "profile", label: "Profile", icon: User },
@@ -1138,20 +1136,6 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
-            </div>
-          )}
-
-          {/* Messages Section - Firebase Real-time Messenger */}
-          {activeSection === "messages" && user && (
-            <div className="h-[calc(100vh-80px)] md:h-[calc(100vh-64px)] w-full overflow-hidden">
-              <FirebaseChatProvider initialUser={{
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role === 'admin' ? 'admin' : 'user'
-              }}>
-                <DemoChatLayout />
-              </FirebaseChatProvider>
             </div>
           )}
 
@@ -2393,8 +2377,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Bottom Tab Navigation - Mobile Only - Hidden when messages are open */}
-      {activeSection !== 'messages' && (
+      {/* Bottom Tab Navigation - Mobile Only */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 md:hidden z-40" style={{paddingBottom: 'env(safe-area-inset-bottom, 0px)'}}>
         <div className="flex justify-around items-center h-16">
           <button
@@ -2417,19 +2400,8 @@ export default function Dashboard() {
             <Wallet className="w-6 h-6" />
             <span className="text-xs mt-1 font-medium">Financial</span>
           </button>
-          <button
-            onClick={() => {
-              setActiveSection('messages');
-              setLocation('/dashboard/messages');
-            }}
-            className={`flex flex-col items-center justify-center flex-1 h-full ${activeSection === 'messages' ? 'text-[#1e3a5f]' : 'text-slate-400'}`}
-          >
-            <MessageSquare className="w-6 h-6" />
-            <span className="text-xs mt-1 font-medium">Messages</span>
-          </button>
         </div>
       </div>
-      )}
 
       {/* Loan Withdrawal Modal */}
       {showWithdrawalForm && selectedLoan && (

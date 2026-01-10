@@ -15,7 +15,7 @@ import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-import MessagesPage from "./pages/MessagesPage";
+// MessagesPage removed
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Employers from "./pages/Employers";
@@ -61,7 +61,7 @@ function Router() {
         <Route path="/financial/tax-refund" component={TaxRefund} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
-        <Route path="/messages" component={MessagesPage} />
+        {/* Messages route removed */}
         <Route path="/dashboard" component={Dashboard} />
         <Route path="/dashboard/:tab" component={Dashboard} />
         <Route path="/404" component={NotFound} />
