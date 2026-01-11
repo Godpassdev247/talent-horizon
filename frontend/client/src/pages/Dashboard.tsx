@@ -14,7 +14,8 @@ import {
   CheckCircle, XCircle, AlertCircle, TrendingUp,
   Mail, Phone, Edit3, Plus, Filter, MoreVertical,
   Send, Paperclip, Award, Menu, X, GraduationCap, Globe, Linkedin, ExternalLink,
-  DollarSign, CreditCard, FileCheck, Wallet, Home, BadgeCheck
+  DollarSign, CreditCard, FileCheck, Wallet, Home, BadgeCheck,
+  ChevronLeft, Video, Users, CalendarDays
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -239,6 +240,25 @@ export default function Dashboard() {
   const [selectedResume, setSelectedResume] = useState<any>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const dashboardStats: any = null;
+  
+  // Calendar state
+  const [calendarView, setCalendarView] = useState<'month' | 'week' | 'day'>('month');
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [showEventModal, setShowEventModal] = useState(false);
+  const [showAddEventModal, setShowAddEventModal] = useState(false);
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    date: '',
+    startTime: '',
+    endTime: '',
+    type: 'interview',
+    company: '',
+    location: '',
+    description: '',
+    meetingLink: ''
+  });
 
   // Load saved jobs from localStorage
   useEffect(() => {
@@ -349,6 +369,192 @@ export default function Dashboard() {
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
+
+  // Load calendar events from localStorage
+  useEffect(() => {
+    const loadCalendarEvents = () => {
+      try {
+        const storedEvents = localStorage.getItem('calendarEvents');
+        if (storedEvents) {
+          setCalendarEvents(JSON.parse(storedEvents));
+        } else {
+          // Initialize with sample events
+          const sampleEvents = [
+            {
+              id: '1',
+              title: 'Technical Interview',
+              company: 'TechVentures Inc.',
+              date: '2026-01-15',
+              startTime: '14:00',
+              endTime: '15:00',
+              type: 'interview',
+              location: 'Video Call',
+              description: 'Technical interview with the engineering team',
+              meetingLink: 'https://zoom.us/j/123456789',
+              createdAt: new Date().toISOString()
+            },
+            {
+              id: '2',
+              title: 'HR Screening Call',
+              company: 'Innovation Labs',
+              date: '2026-01-17',
+              startTime: '10:00',
+              endTime: '10:30',
+              type: 'call',
+              location: 'Phone',
+              description: 'Initial HR screening call',
+              meetingLink: '',
+              createdAt: new Date().toISOString()
+            },
+            {
+              id: '3',
+              title: 'Application Deadline',
+              company: 'FinanceFirst Corp',
+              date: '2026-01-20',
+              startTime: '23:59',
+              endTime: '23:59',
+              type: 'deadline',
+              location: '',
+              description: 'Submit application before deadline',
+              meetingLink: '',
+              createdAt: new Date().toISOString()
+            },
+            {
+              id: '4',
+              title: 'Final Round Interview',
+              company: 'DataDriven Analytics',
+              date: '2026-01-22',
+              startTime: '09:00',
+              endTime: '11:00',
+              type: 'interview',
+              location: 'On-site - Seattle, WA',
+              description: 'Final round with the leadership team',
+              meetingLink: '',
+              createdAt: new Date().toISOString()
+            }
+          ];
+          setCalendarEvents(sampleEvents);
+          localStorage.setItem('calendarEvents', JSON.stringify(sampleEvents));
+        }
+      } catch (e) {
+        console.error('Error loading calendar events:', e);
+      }
+    };
+    loadCalendarEvents();
+  }, []);
+
+  // Calendar helper functions
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDay = firstDay.getDay();
+    return { daysInMonth, startingDay, year, month };
+  };
+
+  const getEventsForDate = (date: string) => {
+    return calendarEvents.filter(event => event.date === date);
+  };
+
+  const formatDateKey = (year: number, month: number, day: number) => {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  };
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentDate(prev => {
+      const newDate = new Date(prev);
+      if (direction === 'prev') {
+        newDate.setMonth(newDate.getMonth() - 1);
+      } else {
+        newDate.setMonth(newDate.getMonth() + 1);
+      }
+      return newDate;
+    });
+  };
+
+  const handleAddEvent = () => {
+    if (!newEvent.title || !newEvent.date || !newEvent.startTime) {
+      return;
+    }
+    const event = {
+      id: Date.now().toString(),
+      ...newEvent,
+      createdAt: new Date().toISOString()
+    };
+    const updatedEvents = [...calendarEvents, event];
+    setCalendarEvents(updatedEvents);
+    localStorage.setItem('calendarEvents', JSON.stringify(updatedEvents));
+    setShowAddEventModal(false);
+    setNewEvent({
+      title: '',
+      date: '',
+      startTime: '',
+      endTime: '',
+      type: 'interview',
+      company: '',
+      location: '',
+      description: '',
+      meetingLink: ''
+    });
+  };
+
+  const handleDeleteEvent = (eventId: string) => {
+    const updatedEvents = calendarEvents.filter(e => e.id !== eventId);
+    setCalendarEvents(updatedEvents);
+    localStorage.setItem('calendarEvents', JSON.stringify(updatedEvents));
+    setSelectedEvent(null);
+    setShowEventModal(false);
+  };
+
+  const getEventTypeStyle = (type: string) => {
+    switch (type) {
+      case 'interview':
+        return 'bg-[#1e3a5f] text-white';
+      case 'call':
+        return 'bg-[#2d5a8a] text-white';
+      case 'deadline':
+        return 'bg-slate-600 text-white';
+      default:
+        return 'bg-[#1e3a5f]/80 text-white';
+    }
+  };
+
+  const getEventTypeBadge = (type: string) => {
+    switch (type) {
+      case 'interview':
+        return { label: 'Interview', className: 'bg-[#1e3a5f]/10 text-[#1e3a5f] border-[#1e3a5f]/30' };
+      case 'call':
+        return { label: 'Call', className: 'bg-[#2d5a8a]/10 text-[#2d5a8a] border-[#2d5a8a]/30' };
+      case 'deadline':
+        return { label: 'Deadline', className: 'bg-slate-100 text-slate-700 border-slate-300' };
+      default:
+        return { label: 'Event', className: 'bg-slate-100 text-slate-700 border-slate-300' };
+    }
+  };
+
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:${minutes} ${ampm}`;
+  };
+
+  const isToday = (year: number, month: number, day: number) => {
+    const today = new Date();
+    return today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+  };
+
+  const getUpcomingEvents = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return calendarEvents
+      .filter(event => new Date(event.date) >= today)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 5);
+  };
 
   // Resume management functions
   const handleUploadResume = (file: File) => {
@@ -2338,36 +2544,589 @@ export default function Dashboard() {
 
           {/* Calendar Section */}
           {activeSection === "calendar" && (
-            <div className="space-y-6">
-              <div>
-                <h1 className="text-2xl font-bold text-[#1e3a5f]">Calendar</h1>
-                <p className="text-slate-500 mt-1">Your interviews and important dates</p>
+            <div className="space-y-4 sm:space-y-6">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-xl sm:text-2xl font-bold text-[#1e3a5f]">Calendar</h1>
+                  <p className="text-slate-500 text-sm sm:text-base mt-1">Manage your interviews and important dates</p>
+                </div>
+                <Button 
+                  onClick={() => setShowAddEventModal(true)}
+                  className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] hover:from-[#2d5a8a] hover:to-[#1e3a5f] text-white shadow-lg w-full sm:w-auto"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Event
+                </Button>
               </div>
 
-              <div className="grid gap-4">
-                {mockEvents.map((event) => (
-                  <div key={event.id} className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 lg:p-6">
-                    <div className="flex items-start gap-4">
-                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        event.type === "interview" 
-                          ? "bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8a]" 
-                          : event.type === "call"
-                          ? "bg-gradient-to-br from-orange-500 to-orange-600"
-                          : "bg-gradient-to-br from-slate-500 to-slate-600"
-                      }`}>
-                        <Calendar className="w-6 h-6 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-lg text-slate-800">{event.title}</h3>
-                        <p className="text-slate-500 mt-1">{event.date} • {event.time}</p>
-                      </div>
-                      <Button variant="outline" className="border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white">
-                        View Details
-                      </Button>
+              {/* Stats Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-slate-200/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#1e3a5f]/15 to-[#1e3a5f]/5 rounded-lg flex items-center justify-center">
+                      <CalendarDays className="w-5 h-5 text-[#1e3a5f]" />
+                    </div>
+                    <div>
+                      <p className="text-xl sm:text-2xl font-bold text-slate-800">{calendarEvents.length}</p>
+                      <p className="text-xs sm:text-sm text-slate-500">Total Events</p>
                     </div>
                   </div>
-                ))}
+                </div>
+                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-slate-200/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#1e3a5f]/15 to-[#1e3a5f]/5 rounded-lg flex items-center justify-center">
+                      <Video className="w-5 h-5 text-[#1e3a5f]" />
+                    </div>
+                    <div>
+                      <p className="text-xl sm:text-2xl font-bold text-slate-800">{calendarEvents.filter(e => e.type === 'interview').length}</p>
+                      <p className="text-xs sm:text-sm text-slate-500">Interviews</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-slate-200/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#1e3a5f]/15 to-[#1e3a5f]/5 rounded-lg flex items-center justify-center">
+                      <Phone className="w-5 h-5 text-[#1e3a5f]" />
+                    </div>
+                    <div>
+                      <p className="text-xl sm:text-2xl font-bold text-slate-800">{calendarEvents.filter(e => e.type === 'call').length}</p>
+                      <p className="text-xs sm:text-sm text-slate-500">Calls</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-slate-200/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#1e3a5f]/15 to-[#1e3a5f]/5 rounded-lg flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-[#1e3a5f]" />
+                    </div>
+                    <div>
+                      <p className="text-xl sm:text-2xl font-bold text-slate-800">{getUpcomingEvents().length}</p>
+                      <p className="text-xs sm:text-sm text-slate-500">Upcoming</p>
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              {/* Main Calendar Grid */}
+              <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
+                {/* Calendar */}
+                <div className="lg:col-span-2 bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-slate-200/50 overflow-hidden">
+                  {/* Calendar Header */}
+                  <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => navigateMonth('prev')}
+                        className="h-8 w-8 sm:h-9 sm:w-9 border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f]/5"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </Button>
+                      <h2 className="text-base sm:text-lg font-bold text-[#1e3a5f] min-w-[140px] sm:min-w-[180px] text-center">
+                        {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                      </h2>
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => navigateMonth('next')}
+                        className="h-8 w-8 sm:h-9 sm:w-9 border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f]/5"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setCurrentDate(new Date())}
+                      className="border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f]/5 text-xs sm:text-sm"
+                    >
+                      Today
+                    </Button>
+                  </div>
+
+                  {/* Days of Week Header */}
+                  <div className="grid grid-cols-7 border-b border-slate-100">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                      <div key={day} className="p-2 sm:p-3 text-center text-xs sm:text-sm font-semibold text-[#1e3a5f]/70">
+                        <span className="hidden sm:inline">{day}</span>
+                        <span className="sm:hidden">{day.charAt(0)}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Calendar Grid */}
+                  <div className="grid grid-cols-7">
+                    {(() => {
+                      const { daysInMonth, startingDay, year, month } = getDaysInMonth(currentDate);
+                      const days = [];
+                      
+                      // Empty cells for days before the first day of the month
+                      for (let i = 0; i < startingDay; i++) {
+                        days.push(
+                          <div key={`empty-${i}`} className="min-h-[60px] sm:min-h-[80px] lg:min-h-[100px] p-1 sm:p-2 border-b border-r border-slate-100 bg-slate-50/50" />
+                        );
+                      }
+                      
+                      // Days of the month
+                      for (let day = 1; day <= daysInMonth; day++) {
+                        const dateKey = formatDateKey(year, month, day);
+                        const dayEvents = getEventsForDate(dateKey);
+                        const isTodayDate = isToday(year, month, day);
+                        
+                        days.push(
+                          <div 
+                            key={day} 
+                            className={`min-h-[60px] sm:min-h-[80px] lg:min-h-[100px] p-1 sm:p-2 border-b border-r border-slate-100 cursor-pointer hover:bg-[#1e3a5f]/5 transition-colors ${
+                              isTodayDate ? 'bg-[#1e3a5f]/5' : ''
+                            }`}
+                            onClick={() => {
+                              if (dayEvents.length > 0) {
+                                setSelectedEvent(dayEvents[0]);
+                                setShowEventModal(true);
+                              }
+                            }}
+                          >
+                            <div className={`text-xs sm:text-sm font-medium mb-1 ${
+                              isTodayDate 
+                                ? 'w-6 h-6 sm:w-7 sm:h-7 bg-[#1e3a5f] text-white rounded-full flex items-center justify-center' 
+                                : 'text-slate-700'
+                            }`}>
+                              {day}
+                            </div>
+                            <div className="space-y-0.5 sm:space-y-1">
+                              {dayEvents.slice(0, 2).map((event, idx) => (
+                                <div 
+                                  key={idx} 
+                                  className={`text-[10px] sm:text-xs px-1 sm:px-1.5 py-0.5 rounded truncate ${getEventTypeStyle(event.type)}`}
+                                >
+                                  <span className="hidden sm:inline">{event.title}</span>
+                                  <span className="sm:hidden">{event.type === 'interview' ? '📋' : event.type === 'call' ? '📞' : '⏰'}</span>
+                                </div>
+                              ))}
+                              {dayEvents.length > 2 && (
+                                <div className="text-[10px] sm:text-xs text-[#1e3a5f] font-medium px-1">
+                                  +{dayEvents.length - 2} more
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      }
+                      
+                      return days;
+                    })()}
+                  </div>
+                </div>
+
+                {/* Upcoming Events Sidebar */}
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-slate-200/50 p-4 sm:p-5">
+                  <h3 className="font-bold text-[#1e3a5f] mb-4 flex items-center gap-2">
+                    <Clock className="w-5 h-5" />
+                    Upcoming Events
+                  </h3>
+                  <div className="space-y-3">
+                    {getUpcomingEvents().length > 0 ? (
+                      getUpcomingEvents().map((event) => {
+                        const typeBadge = getEventTypeBadge(event.type);
+                        return (
+                          <motion.div
+                            key={event.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="p-3 sm:p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-100"
+                            onClick={() => {
+                              setSelectedEvent(event);
+                              setShowEventModal(true);
+                            }}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${getEventTypeStyle(event.type)}`}>
+                                {event.type === 'interview' ? (
+                                  <Video className="w-4 h-4 sm:w-5 sm:h-5" />
+                                ) : event.type === 'call' ? (
+                                  <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
+                                ) : (
+                                  <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-slate-800 text-sm truncate">{event.title}</h4>
+                                <p className="text-xs text-slate-500 mt-0.5">{event.company}</p>
+                                <div className="flex items-center gap-2 mt-2">
+                                  <Badge className={`text-[10px] ${typeBadge.className}`}>
+                                    {typeBadge.label}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs text-[#1e3a5f] font-medium mt-2">
+                                  {new Date(event.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} • {formatTime(event.startTime)}
+                                </p>
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })
+                    ) : (
+                      <div className="text-center py-8">
+                        <CalendarDays className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                        <p className="text-slate-500 text-sm">No upcoming events</p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-3 border-[#1e3a5f]/20 text-[#1e3a5f]"
+                          onClick={() => setShowAddEventModal(true)}
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add Event
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* All Events List */}
+              <div className="bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl border border-slate-200/50 p-4 sm:p-5">
+                <h3 className="font-bold text-[#1e3a5f] mb-4 flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  All Events
+                </h3>
+                {calendarEvents.length > 0 ? (
+                  <div className="grid gap-3 sm:gap-4">
+                    {calendarEvents
+                      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                      .map((event) => {
+                        const typeBadge = getEventTypeBadge(event.type);
+                        return (
+                          <motion.div
+                            key={event.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors cursor-pointer border border-slate-100"
+                            onClick={() => {
+                              setSelectedEvent(event);
+                              setShowEventModal(true);
+                            }}
+                          >
+                            <div className="flex items-start gap-3 sm:gap-4">
+                              <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${getEventTypeStyle(event.type)}`}>
+                                {event.type === 'interview' ? (
+                                  <Video className="w-5 h-5 sm:w-6 sm:h-6" />
+                                ) : event.type === 'call' ? (
+                                  <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
+                                ) : (
+                                  <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h4 className="font-bold text-slate-800 text-sm sm:text-base">{event.title}</h4>
+                                  <Badge className={`text-[10px] sm:text-xs ${typeBadge.className}`}>
+                                    {typeBadge.label}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs sm:text-sm text-slate-500 mt-1">{event.company}</p>
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs sm:text-sm text-slate-500">
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    {new Date(event.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    {formatTime(event.startTime)}{event.endTime && event.endTime !== event.startTime ? ` - ${formatTime(event.endTime)}` : ''}
+                                  </span>
+                                  {event.location && (
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                                      {event.location}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 ml-auto sm:ml-0">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f]/5 text-xs sm:text-sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedEvent(event);
+                                  setShowEventModal(true);
+                                }}
+                              >
+                                <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                View
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="border-red-200 text-red-600 hover:bg-red-50 text-xs sm:text-sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteEvent(event.id);
+                                }}
+                              >
+                                <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                              </Button>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <CalendarDays className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <h4 className="text-lg font-semibold text-slate-700 mb-2">No events scheduled</h4>
+                    <p className="text-slate-500 mb-4">Add your first event to get started</p>
+                    <Button 
+                      onClick={() => setShowAddEventModal(true)}
+                      className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] text-white"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Event
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Event Details Modal */}
+          {showEventModal && selectedEvent && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col"
+              >
+                <div className="p-5 sm:p-6 border-b border-slate-100 flex-shrink-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getEventTypeStyle(selectedEvent.type)}`}>
+                        {selectedEvent.type === 'interview' ? (
+                          <Video className="w-6 h-6" />
+                        ) : selectedEvent.type === 'call' ? (
+                          <Phone className="w-6 h-6" />
+                        ) : (
+                          <Clock className="w-6 h-6" />
+                        )}
+                      </div>
+                      <div>
+                        <h2 className="text-lg sm:text-xl font-bold text-slate-800">{selectedEvent.title}</h2>
+                        <p className="text-sm text-slate-500">{selectedEvent.company}</p>
+                      </div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => {
+                        setShowEventModal(false);
+                        setSelectedEvent(null);
+                      }}
+                      className="text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="p-5 sm:p-6 flex-1 overflow-y-auto space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-50 rounded-lg p-4">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Date</p>
+                      <p className="font-semibold text-slate-800 mt-1">
+                        {new Date(selectedEvent.date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                      </p>
+                    </div>
+                    <div className="bg-slate-50 rounded-lg p-4">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Time</p>
+                      <p className="font-semibold text-slate-800 mt-1">
+                        {formatTime(selectedEvent.startTime)}{selectedEvent.endTime && selectedEvent.endTime !== selectedEvent.startTime ? ` - ${formatTime(selectedEvent.endTime)}` : ''}
+                      </p>
+                    </div>
+                  </div>
+                  {selectedEvent.location && (
+                    <div className="bg-slate-50 rounded-lg p-4">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Location</p>
+                      <p className="font-semibold text-slate-800 mt-1 flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-[#1e3a5f]" />
+                        {selectedEvent.location}
+                      </p>
+                    </div>
+                  )}
+                  {selectedEvent.meetingLink && (
+                    <div className="bg-slate-50 rounded-lg p-4">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Meeting Link</p>
+                      <a 
+                        href={selectedEvent.meetingLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="font-semibold text-[#1e3a5f] mt-1 flex items-center gap-2 hover:underline"
+                      >
+                        <Video className="w-4 h-4" />
+                        Join Meeting
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
+                  {selectedEvent.description && (
+                    <div className="bg-slate-50 rounded-lg p-4">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide">Description</p>
+                      <p className="text-slate-700 mt-1">{selectedEvent.description}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="p-5 sm:p-6 border-t border-slate-100 flex-shrink-0 flex flex-wrap gap-3 justify-end">
+                  <Button 
+                    variant="outline"
+                    className="border-red-200 text-red-600 hover:bg-red-50"
+                    onClick={() => handleDeleteEvent(selectedEvent.id)}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </Button>
+                  {selectedEvent.meetingLink && (
+                    <Button 
+                      className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] text-white"
+                      onClick={() => window.open(selectedEvent.meetingLink, '_blank')}
+                    >
+                      <Video className="w-4 h-4 mr-2" />
+                      Join Meeting
+                    </Button>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+
+          {/* Add Event Modal */}
+          {showAddEventModal && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col"
+              >
+                <div className="p-5 sm:p-6 border-b border-slate-100 flex-shrink-0">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg sm:text-xl font-bold text-[#1e3a5f]">Add New Event</h2>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => setShowAddEventModal(false)}
+                      className="text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="p-5 sm:p-6 flex-1 overflow-y-auto space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Event Title *</label>
+                    <Input 
+                      placeholder="e.g., Technical Interview"
+                      value={newEvent.title}
+                      onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+                      className="border-slate-200 focus:border-[#1e3a5f] focus:ring-[#1e3a5f]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Company</label>
+                    <Input 
+                      placeholder="e.g., TechVentures Inc."
+                      value={newEvent.company}
+                      onChange={(e) => setNewEvent({...newEvent, company: e.target.value})}
+                      className="border-slate-200 focus:border-[#1e3a5f] focus:ring-[#1e3a5f]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Event Type</label>
+                    <select 
+                      value={newEvent.type}
+                      onChange={(e) => setNewEvent({...newEvent, type: e.target.value})}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-[#1e3a5f] focus:ring-1 focus:ring-[#1e3a5f] outline-none"
+                    >
+                      <option value="interview">Interview</option>
+                      <option value="call">Phone Call</option>
+                      <option value="deadline">Deadline</option>
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Date *</label>
+                      <Input 
+                        type="date"
+                        value={newEvent.date}
+                        onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
+                        className="border-slate-200 focus:border-[#1e3a5f] focus:ring-[#1e3a5f]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1">Start Time *</label>
+                      <Input 
+                        type="time"
+                        value={newEvent.startTime}
+                        onChange={(e) => setNewEvent({...newEvent, startTime: e.target.value})}
+                        className="border-slate-200 focus:border-[#1e3a5f] focus:ring-[#1e3a5f]"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">End Time</label>
+                    <Input 
+                      type="time"
+                      value={newEvent.endTime}
+                      onChange={(e) => setNewEvent({...newEvent, endTime: e.target.value})}
+                      className="border-slate-200 focus:border-[#1e3a5f] focus:ring-[#1e3a5f]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>
+                    <Input 
+                      placeholder="e.g., Video Call, On-site"
+                      value={newEvent.location}
+                      onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+                      className="border-slate-200 focus:border-[#1e3a5f] focus:ring-[#1e3a5f]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Meeting Link</label>
+                    <Input 
+                      placeholder="https://zoom.us/j/..."
+                      value={newEvent.meetingLink}
+                      onChange={(e) => setNewEvent({...newEvent, meetingLink: e.target.value})}
+                      className="border-slate-200 focus:border-[#1e3a5f] focus:ring-[#1e3a5f]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                    <textarea 
+                      placeholder="Add any notes or details..."
+                      value={newEvent.description}
+                      onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
+                      rows={3}
+                      className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-[#1e3a5f] focus:ring-1 focus:ring-[#1e3a5f] outline-none resize-none"
+                    />
+                  </div>
+                </div>
+                <div className="p-5 sm:p-6 border-t border-slate-100 flex-shrink-0 flex flex-wrap gap-3 justify-end">
+                  <Button 
+                    variant="outline"
+                    onClick={() => setShowAddEventModal(false)}
+                    className="border-slate-200"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleAddEvent}
+                    disabled={!newEvent.title || !newEvent.date || !newEvent.startTime}
+                    className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] text-white disabled:opacity-50"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Event
+                  </Button>
+                </div>
+              </motion.div>
             </div>
           )}
 
