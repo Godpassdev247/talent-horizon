@@ -3,6 +3,7 @@
  */
 
 import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 import { useLocation, useSearch } from "wouter";
 import { motion } from "framer-motion";
 import { 
@@ -81,6 +82,8 @@ export default function Jobs() {
   const [sortBy, setSortBy] = useState<"date" | "salary" | "relevance">("date");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [savedJobIds, setSavedJobIds] = useState<number[]>([]);
+  const { toast } = useToast();
 
   // Build query params
   const queryParams = {
@@ -97,6 +100,66 @@ export default function Jobs() {
 
   // Fetch jobs
   const { data, isLoading, refetch } = trpc.jobs.search.useQuery(queryParams);
+
+  // Load saved jobs from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('savedJobs');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setSavedJobIds(parsed.map((j: any) => j.id));
+      } catch (e) {
+        console.error('Error parsing saved jobs:', e);
+      }
+    }
+  }, []);
+
+  // Handle save/unsave job
+  const handleSaveJob = (jobId: number) => {
+    const saved = localStorage.getItem('savedJobs');
+    let savedJobs: any[] = [];
+    try {
+      savedJobs = saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      savedJobs = [];
+    }
+
+    const isAlreadySaved = savedJobs.some((j: any) => j.id === jobId);
+    
+    if (isAlreadySaved) {
+      // Remove from saved
+      savedJobs = savedJobs.filter((j: any) => j.id !== jobId);
+      setSavedJobIds(prev => prev.filter(id => id !== jobId));
+      toast({
+        title: "Job removed",
+        description: "Job has been removed from your saved list.",
+      });
+    } else {
+      // Add to saved - find the job data
+      const job = data?.jobs?.find(j => j.id === jobId);
+      if (job) {
+        savedJobs.push({
+          id: job.id,
+          title: job.title,
+          companyName: job.companyName,
+          location: job.location,
+          salaryMin: job.salaryMin,
+          salaryMax: job.salaryMax,
+          salaryType: job.salaryType,
+          jobType: job.jobType,
+          locationType: job.locationType,
+          savedAt: new Date().toISOString(),
+        });
+        setSavedJobIds(prev => [...prev, jobId]);
+        toast({
+          title: "Job saved!",
+          description: "Job has been added to your saved list.",
+        });
+      }
+    }
+    
+    localStorage.setItem('savedJobs', JSON.stringify(savedJobs));
+  };
 
   // Active filters count
   const activeFiltersCount = [jobType, experienceLevel, locationType, salaryRange].filter(Boolean).length;
@@ -381,7 +444,12 @@ export default function Jobs() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      <JobCard job={job} showSaveButton />
+                      <JobCard 
+                      job={job} 
+                      showSaveButton 
+                      onSave={handleSaveJob}
+                      isSaved={savedJobIds.includes(job.id)}
+                    />
                     </motion.div>
                   ))}
                 </div>

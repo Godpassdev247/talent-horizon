@@ -231,11 +231,45 @@ export default function Dashboard() {
   const [applications, setApplications] = useState<any[]>([]);
   const [appsLoading, setAppsLoading] = useState(true);
   
-  const savedJobs: any[] = [];
+  const [savedJobs, setSavedJobs] = useState<any[]>([]);
+  const [savedLoading, setSavedLoading] = useState(true);
   const resumes: any[] = [];
   const dashboardStats: any = null;
-  const savedLoading = false;
   const resumesLoading = false;
+
+  // Load saved jobs from localStorage
+  useEffect(() => {
+    const loadSavedJobs = () => {
+      setSavedLoading(true);
+      try {
+        const saved = localStorage.getItem('savedJobs');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setSavedJobs(parsed);
+        }
+      } catch (e) {
+        console.error('Error loading saved jobs:', e);
+      }
+      setSavedLoading(false);
+    };
+    loadSavedJobs();
+    
+    // Listen for storage changes (when jobs are saved from other pages)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'savedJobs') {
+        loadSavedJobs();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Handle remove saved job
+  const handleRemoveSavedJob = (jobId: number) => {
+    const updatedJobs = savedJobs.filter(j => j.id !== jobId);
+    setSavedJobs(updatedJobs);
+    localStorage.setItem('savedJobs', JSON.stringify(updatedJobs));
+  };
   
   // Fetch user's applications from tRPC API
   useEffect(() => {
@@ -452,7 +486,7 @@ export default function Dashboard() {
         {/* User Info Card */}
         <div className="p-5 border-b border-white/15">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+            <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-cyan-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
               <span className="text-white font-bold text-lg">
                 {user?.name?.charAt(0) || "U"}
               </span>
@@ -464,14 +498,14 @@ export default function Dashboard() {
           </div>
           
           {/* Profile Completion */}
-          <div className="mt-4 bg-white/5 rounded-xl p-3">
+          <div className="mt-4 bg-white/10 rounded-xl p-3">
             <div className="flex justify-between text-sm mb-2">
               <span className="text-white/70">Profile Completion</span>
-              <span className="text-orange-400 font-semibold">{profileCompletion}%</span>
+              <span className={`font-semibold ${profileCompletion >= 100 ? 'text-emerald-400' : profileCompletion >= 75 ? 'text-sky-400' : 'text-cyan-400'}`}>{profileCompletion}%</span>
             </div>
             <div className="h-2 bg-white/10 rounded-full overflow-hidden">
               <div 
-                className="h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-500"
+                className={`h-full rounded-full transition-all duration-500 ${profileCompletion >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 'bg-gradient-to-r from-sky-400 to-cyan-500'}`}
                 style={{ width: `${profileCompletion}%` }}
               />
             </div>
@@ -1017,7 +1051,7 @@ export default function Dashboard() {
                   savedJobs.map((saved: any) => (
                     <div
                       key={saved.id}
-                      className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 lg:p-6 hover:border-[#1e3a5f]/20 transition-all"
+                      className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 lg:p-6 border border-transparent hover:border-[#1e3a5f]/20 transition-all"
                     >
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div className="flex items-start gap-4">
@@ -1025,26 +1059,54 @@ export default function Dashboard() {
                             <Building2 className="w-7 h-7 text-[#1e3a5f]" />
                           </div>
                           <div>
-                            <h3 className="font-bold text-lg text-slate-800">{saved.job?.title}</h3>
+                            <h3 className="font-bold text-lg text-slate-800">{saved.title}</h3>
                             <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-slate-500">
                               <span className="flex items-center gap-1">
                                 <Building2 className="w-4 h-4" />
-                                {saved.company?.name}
+                                {saved.companyName || 'Company'}
                               </span>
                               <span className="flex items-center gap-1">
                                 <MapPin className="w-4 h-4" />
-                                {saved.job?.location}
+                                {saved.location}
                               </span>
+                              {saved.salaryMin && saved.salaryMax && (
+                                <span className="flex items-center gap-1 text-[#1e3a5f] font-medium">
+                                  <DollarSign className="w-4 h-4" />
+                                  ${(saved.salaryMin / 1000).toFixed(0)}K - ${(saved.salaryMax / 1000).toFixed(0)}K
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {saved.jobType && (
+                                <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-full">
+                                  {saved.jobType.replace('-', ' ')}
+                                </span>
+                              )}
+                              {saved.locationType && (
+                                <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-full">
+                                  {saved.locationType}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <Link href={`/jobs/${saved.jobId}/apply`}>
-                            <Button className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] hover:from-[#2d5a8a] hover:to-[#1e3a5f] text-white shadow-lg">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                          <Link href={`/jobs/${saved.id}`}>
+                            <Button variant="outline" size="sm" className="border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white text-xs sm:text-sm">
+                              View Details
+                            </Button>
+                          </Link>
+                          <Link href={`/jobs/${saved.id}/apply`}>
+                            <Button size="sm" className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] hover:from-[#2d5a8a] hover:to-[#1e3a5f] text-white shadow-lg text-xs sm:text-sm">
                               Apply Now
                             </Button>
                           </Link>
-                          <Button variant="outline" size="icon" className="border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200">
+                          <Button 
+                            variant="outline" 
+                            size="icon" 
+                            className="border-slate-200 text-slate-400 hover:text-red-500 hover:border-red-200 w-8 h-8 sm:w-10 sm:h-10"
+                            onClick={() => handleRemoveSavedJob(saved.id)}
+                          >
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
