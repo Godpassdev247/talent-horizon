@@ -395,14 +395,14 @@ export default function Dashboard() {
             },
             {
               id: '2',
-              title: 'HR Screening Call',
+              title: 'HR Screening Chat',
               company: 'Innovation Labs',
               date: '2026-01-17',
               startTime: '10:00',
               endTime: '10:30',
-              type: 'call',
-              location: 'Phone',
-              description: 'Initial HR screening call',
+              type: 'chat',
+              location: 'In-App Chat',
+              description: 'Initial HR screening via chat message',
               meetingLink: '',
               createdAt: new Date().toISOString()
             },
@@ -512,7 +512,7 @@ export default function Dashboard() {
     switch (type) {
       case 'interview':
         return 'bg-[#1e3a5f] text-white';
-      case 'call':
+      case 'chat':
         return 'bg-[#2d5a8a] text-white';
       case 'deadline':
         return 'bg-slate-600 text-white';
@@ -525,8 +525,8 @@ export default function Dashboard() {
     switch (type) {
       case 'interview':
         return { label: 'Interview', className: 'bg-[#1e3a5f]/10 text-[#1e3a5f] border-[#1e3a5f]/30' };
-      case 'call':
-        return { label: 'Call', className: 'bg-[#2d5a8a]/10 text-[#2d5a8a] border-[#2d5a8a]/30' };
+      case 'chat':
+        return { label: 'Chat Interview', className: 'bg-[#2d5a8a]/10 text-[#2d5a8a] border-[#2d5a8a]/30' };
       case 'deadline':
         return { label: 'Deadline', className: 'bg-slate-100 text-slate-700 border-slate-300' };
       default:
@@ -2587,11 +2587,11 @@ export default function Dashboard() {
                 <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-slate-200/50">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-[#1e3a5f]/15 to-[#1e3a5f]/5 rounded-lg flex items-center justify-center">
-                      <Phone className="w-5 h-5 text-[#1e3a5f]" />
+                      <MessageSquare className="w-5 h-5 text-[#1e3a5f]" />
                     </div>
                     <div>
-                      <p className="text-xl sm:text-2xl font-bold text-slate-800">{calendarEvents.filter(e => e.type === 'call').length}</p>
-                      <p className="text-xs sm:text-sm text-slate-500">Calls</p>
+                      <p className="text-xl sm:text-2xl font-bold text-slate-800">{calendarEvents.filter(e => e.type === 'chat').length}</p>
+                      <p className="text-xs sm:text-sm text-slate-500">Chat Interviews</p>
                     </div>
                   </div>
                 </div>
@@ -2701,7 +2701,7 @@ export default function Dashboard() {
                                   className={`text-[10px] sm:text-xs px-1 sm:px-1.5 py-0.5 rounded truncate ${getEventTypeStyle(event.type)}`}
                                 >
                                   <span className="hidden sm:inline">{event.title}</span>
-                                  <span className="sm:hidden">{event.type === 'interview' ? '📋' : event.type === 'call' ? '📞' : '⏰'}</span>
+                                  <span className="sm:hidden">{event.type === 'interview' ? '📋' : event.type === 'chat' ? '💬' : '⏰'}</span>
                                 </div>
                               ))}
                               {dayEvents.length > 2 && (
@@ -2744,8 +2744,8 @@ export default function Dashboard() {
                               <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${getEventTypeStyle(event.type)}`}>
                                 {event.type === 'interview' ? (
                                   <Video className="w-4 h-4 sm:w-5 sm:h-5" />
-                                ) : event.type === 'call' ? (
-                                  <Phone className="w-4 h-4 sm:w-5 sm:h-5" />
+                                ) : event.type === 'chat' ? (
+                                  <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
                                 ) : (
                                   <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
                                 )}
@@ -2812,8 +2812,8 @@ export default function Dashboard() {
                               <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${getEventTypeStyle(event.type)}`}>
                                 {event.type === 'interview' ? (
                                   <Video className="w-5 h-5 sm:w-6 sm:h-6" />
-                                ) : event.type === 'call' ? (
-                                  <Phone className="w-5 h-5 sm:w-6 sm:h-6" />
+                                ) : event.type === 'chat' ? (
+                                  <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
                                 ) : (
                                   <Clock className="w-5 h-5 sm:w-6 sm:h-6" />
                                 )}
@@ -2906,8 +2906,8 @@ export default function Dashboard() {
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getEventTypeStyle(selectedEvent.type)}`}>
                         {selectedEvent.type === 'interview' ? (
                           <Video className="w-6 h-6" />
-                        ) : selectedEvent.type === 'call' ? (
-                          <Phone className="w-6 h-6" />
+                        ) : selectedEvent.type === 'chat' ? (
+                          <MessageSquare className="w-6 h-6" />
                         ) : (
                           <Clock className="w-6 h-6" />
                         )}
@@ -3047,7 +3047,7 @@ export default function Dashboard() {
                       className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:border-[#1e3a5f] focus:ring-1 focus:ring-[#1e3a5f] outline-none"
                     >
                       <option value="interview">Interview</option>
-                      <option value="call">Phone Call</option>
+                      <option value="chat">Chat Interview</option>
                       <option value="deadline">Deadline</option>
                     </select>
                   </div>
