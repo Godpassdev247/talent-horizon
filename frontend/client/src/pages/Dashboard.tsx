@@ -777,9 +777,14 @@ export default function Dashboard() {
                             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-[#1e3a5f]/10 to-[#1e3a5f]/5 rounded-xl flex items-center justify-center flex-shrink-0 border border-[#1e3a5f]/10">
                               <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-[#1e3a5f]" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-2">
-                                <h3 className="font-semibold text-slate-800 text-sm sm:text-base truncate">{app.job?.title || "Job Position"}</h3>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex items-center gap-2 flex-wrap min-w-0">
+                                    <h3 className="font-semibold text-slate-800 text-sm sm:text-base truncate">{app.job?.title || "Job Position"}</h3>
+                                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 text-xs font-medium rounded-full flex-shrink-0">
+                                      <BadgeCheck className="w-3 h-3" />
+                                    </span>
+                                  </div>
                                 <Badge className={`${getStatusStyle(app.status)} border font-medium text-xs flex-shrink-0 whitespace-nowrap`}>
                                   {getStatusIcon(app.status)}
                                   <span className="ml-1 hidden sm:inline">{getStatusLabel(app.status)}</span>
@@ -902,7 +907,13 @@ export default function Dashboard() {
                                 <Building2 className="w-5 h-5 sm:w-7 sm:h-7 text-[#1e3a5f]" />
                               </div>
                               <div>
-                                <h3 className="font-bold text-base sm:text-lg text-slate-800 line-clamp-1">{app.job?.title || "Job Position"}</h3>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h3 className="font-bold text-base sm:text-lg text-slate-800 line-clamp-1">{app.job?.title || "Job Position"}</h3>
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 text-xs font-medium rounded-full">
+                                    <BadgeCheck className="w-3 h-3" />
+                                    <span className="hidden sm:inline">Verified</span>
+                                  </span>
+                                </div>
                                 <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1 text-xs sm:text-sm text-slate-500">
                                   <span className="flex items-center gap-1">
                                     <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -968,7 +979,13 @@ export default function Dashboard() {
                                 <CheckCircle className="w-7 h-7 text-green-600" />
                               </div>
                               <div>
-                                <h3 className="font-bold text-lg text-slate-800">{app.job?.title}</h3>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h3 className="font-bold text-lg text-slate-800">{app.job?.title}</h3>
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 text-xs font-medium rounded-full">
+                                    <BadgeCheck className="w-3 h-3" />
+                                    Verified
+                                  </span>
+                                </div>
                                 <p className="text-sm text-slate-500">{app.company?.name} • {app.job?.location}</p>
                                 <p className="text-sm text-green-600 font-medium mt-2">Interview scheduled</p>
                               </div>
@@ -997,7 +1014,13 @@ export default function Dashboard() {
                                 <Clock className="w-7 h-7 text-orange-600" />
                               </div>
                               <div>
-                                <h3 className="font-bold text-lg text-slate-800">{app.job?.title}</h3>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h3 className="font-bold text-lg text-slate-800">{app.job?.title}</h3>
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 text-xs font-medium rounded-full">
+                                    <BadgeCheck className="w-3 h-3" />
+                                    Verified
+                                  </span>
+                                </div>
                                 <p className="text-sm text-slate-500">{app.company?.name} • {app.job?.location}</p>
                                 <p className="text-sm text-orange-600 font-medium mt-2">Application under review</p>
                               </div>
@@ -1026,7 +1049,13 @@ export default function Dashboard() {
                                 <AlertCircle className="w-7 h-7 text-slate-600" />
                               </div>
                               <div>
-                                <h3 className="font-bold text-lg text-slate-800">{app.job?.title}</h3>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h3 className="font-bold text-lg text-slate-800">{app.job?.title}</h3>
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-blue-50 to-blue-100 text-blue-600 text-xs font-medium rounded-full">
+                                    <BadgeCheck className="w-3 h-3" />
+                                    Verified
+                                  </span>
+                                </div>
                                 <p className="text-sm text-slate-500">{app.company?.name} • {app.job?.location}</p>
                                 <p className="text-sm text-slate-500 mt-2">Waiting for employer response</p>
                               </div>
