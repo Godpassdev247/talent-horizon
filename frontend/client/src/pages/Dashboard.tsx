@@ -271,31 +271,36 @@ export default function Dashboard() {
     localStorage.setItem('savedJobs', JSON.stringify(updatedJobs));
   };
   
-  // Fetch user's applications from tRPC API
+  // Fetch user's applications from localStorage
   useEffect(() => {
-    const fetchApplications = async () => {
-      const token = localStorage.getItem('frontendToken');
-      if (!token || !user) return;
-      
+    const fetchApplications = () => {
       try {
         setAppsLoading(true);
-        // Use tRPC endpoint to fetch applications
-        const response = await fetch('/api/trpc/applications.getAll', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          // tRPC returns data in result.data.json format
-          if (data.result?.data?.json) {
-            setApplications(data.result.data.json);
-          } else if (data.result?.data) {
-            setApplications(data.result.data);
-          }
+        // Get applications from localStorage
+        const storedApps = localStorage.getItem('applications');
+        if (storedApps) {
+          const apps = JSON.parse(storedApps);
+          // Transform to match expected format
+          const transformedApps = apps.map((app: any) => ({
+            id: app.id,
+            jobId: app.jobId,
+            status: app.status,
+            createdAt: app.appliedAt,
+            coverLetter: app.coverLetter,
+            job: {
+              id: app.jobId,
+              title: app.jobTitle,
+              location: app.location,
+              salaryMin: app.salary ? parseInt(app.salary.split('$')[1]?.split('K')[0] || '0') * 1000 : null,
+              salaryMax: app.salary ? parseInt(app.salary.split('$')[2]?.split('K')[0] || '0') * 1000 : null,
+              jobType: app.jobType,
+            },
+            company: {
+              name: app.company,
+              logoUrl: app.companyLogo,
+            },
+          }));
+          setApplications(transformedApps);
         }
       } catch (error) {
         console.error('Failed to fetch applications:', error);
@@ -305,7 +310,16 @@ export default function Dashboard() {
     };
     
     fetchApplications();
-  }, [user]);
+    
+    // Listen for storage changes to update applications in real-time
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'applications') {
+        fetchApplications();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
   
   // Selected message for detail view
   const [selectedMessage, setSelectedMessage] = useState<any>(null);
@@ -880,49 +894,49 @@ export default function Dashboard() {
                       applications.map((app: any, index: number) => (
                         <div
                           key={app.id}
-                          className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 lg:p-6 hover:border-[#1e3a5f]/20 transition-all"
+                          className="bg-white/70 backdrop-blur-sm rounded-xl sm:rounded-2xl p-3 sm:p-5 lg:p-6 hover:border-[#1e3a5f]/20 transition-all"
                         >
                           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                             <div className="flex items-start gap-4">
-                              <div className="w-14 h-14 bg-gradient-to-br from-[#1e3a5f]/10 to-[#1e3a5f]/5 rounded-xl flex items-center justify-center flex-shrink-0 border border-[#1e3a5f]/10">
-                                <Building2 className="w-7 h-7 text-[#1e3a5f]" />
+                              <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-[#1e3a5f]/10 to-[#1e3a5f]/5 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 border border-[#1e3a5f]/10">
+                                <Building2 className="w-5 h-5 sm:w-7 sm:h-7 text-[#1e3a5f]" />
                               </div>
                               <div>
-                                <h3 className="font-bold text-lg text-slate-800">{app.job?.title || "Job Position"}</h3>
-                                <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-slate-500">
+                                <h3 className="font-bold text-base sm:text-lg text-slate-800 line-clamp-1">{app.job?.title || "Job Position"}</h3>
+                                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1 text-xs sm:text-sm text-slate-500">
                                   <span className="flex items-center gap-1">
-                                    <Building2 className="w-4 h-4" />
-                                    {app.company?.name || "Company"}
+                                    <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    <span className="truncate max-w-[100px] sm:max-w-none">{app.company?.name || "Company"}</span>
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    <MapPin className="w-4 h-4" />
-                                    {app.job?.location || "Location"}
+                                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                                    <span className="truncate max-w-[80px] sm:max-w-none">{app.job?.location || "Location"}</span>
                                   </span>
                                   {app.job?.salaryMin && (
-                                    <span className="flex items-center gap-1">
-                                      <DollarSign className="w-4 h-4" />
+                                    <span className="flex items-center gap-1 hidden sm:flex">
+                                      <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
                                       ${(app.job.salaryMin / 1000).toFixed(0)}K - ${(app.job.salaryMax / 1000).toFixed(0)}K
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-sm text-slate-400 mt-2">
-                                  Applied on {new Date(app.appliedAt || app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                <p className="text-xs sm:text-sm text-slate-400 mt-1 sm:mt-2">
+                                  Applied {new Date(app.appliedAt || app.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                                 </p>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3">
-                              <Badge className={`${getStatusStyle(app.status)} border font-medium px-3 py-1.5`}>
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-3 lg:mt-0">
+                              <Badge className={`${getStatusStyle(app.status)} border font-medium px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm`}>
                                 {getStatusIcon(app.status)}
-                                <span className="ml-1.5">{getStatusLabel(app.status)}</span>
+                                <span className="ml-1 sm:ml-1.5">{getStatusLabel(app.status)}</span>
                               </Badge>
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                className="border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white"
+                                className="border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white text-xs sm:text-sm"
                                 onClick={() => setSelectedApplication(app)}
                               >
-                                <Eye className="w-4 h-4 mr-1" />
-                                View Details
+                                <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                                <span className="hidden xs:inline">View </span>Details
                               </Button>
                             </div>
                           </div>
@@ -2439,31 +2453,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Bottom Tab Navigation - Mobile Only */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 md:hidden z-40" style={{paddingBottom: 'env(safe-area-inset-bottom, 0px)'}}>
-        <div className="flex justify-around items-center h-16">
-          <button
-            onClick={() => {
-              setActiveSection('applications');
-              setLocation('/dashboard/applications');
-            }}
-            className={`flex flex-col items-center justify-center flex-1 h-full ${activeSection === 'applications' ? 'text-[#1e3a5f]' : 'text-slate-400'}`}
-          >
-            <Briefcase className="w-6 h-6" />
-            <span className="text-xs mt-1 font-medium">Applications</span>
-          </button>
-          <button
-            onClick={() => {
-              setActiveSection('financial');
-              setLocation('/dashboard/financial');
-            }}
-            className={`flex flex-col items-center justify-center flex-1 h-full ${activeSection === 'financial' ? 'text-[#1e3a5f]' : 'text-slate-400'}`}
-          >
-            <Wallet className="w-6 h-6" />
-            <span className="text-xs mt-1 font-medium">Financial</span>
-          </button>
-        </div>
-      </div>
+
 
       {/* Loan Withdrawal Modal */}
       {showWithdrawalForm && selectedLoan && (
