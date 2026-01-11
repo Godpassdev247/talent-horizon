@@ -388,7 +388,7 @@ export default function Dashboard() {
               startTime: '14:00',
               endTime: '15:00',
               type: 'interview',
-              location: 'In-App Chat',
+              location: 'Remote - San Francisco, CA',
               description: 'Technical interview with the engineering team via chat',
               meetingLink: '',
               createdAt: new Date().toISOString()
@@ -401,7 +401,7 @@ export default function Dashboard() {
               startTime: '10:00',
               endTime: '10:30',
               type: 'chat',
-              location: 'In-App Chat',
+              location: 'Remote - Austin, TX',
               description: 'Initial HR screening via chat message',
               meetingLink: '',
               createdAt: new Date().toISOString()
@@ -427,7 +427,7 @@ export default function Dashboard() {
               startTime: '09:00',
               endTime: '11:00',
               type: 'interview',
-              location: 'In-App Chat',
+              location: 'Remote - Seattle, WA',
               description: 'Final round interview with the leadership team via chat',
               meetingLink: '',
               createdAt: new Date().toISOString()
@@ -3083,7 +3083,7 @@ export default function Dashboard() {
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>
                     <Input 
-                      placeholder="e.g., In-App Chat, On-site"
+                      placeholder="e.g., Remote - New York, NY"
                       value={newEvent.location}
                       onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
                       className="border-slate-200 focus:border-[#1e3a5f] focus:ring-[#1e3a5f]"
