@@ -426,19 +426,19 @@ export default function Dashboard() {
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:fixed top-0 left-0 h-full w-72 bg-gradient-to-b from-[#1e3a5f] to-[#0f2744] z-50
+        fixed lg:fixed top-0 left-0 h-full w-72 bg-gradient-to-b from-[#3d5a80] to-[#2d4a6a] z-50
         transform transition-transform duration-300 ease-in-out
         ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         flex flex-col shadow-2xl
       `}>
         {/* Logo */}
-        <div className="p-5 lg:p-6 border-b border-white/10 flex items-center justify-between">
+        <div className="p-5 lg:p-6 border-b border-white/15 flex items-center justify-between">
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer">
-              <div className="w-11 h-11 bg-white/10 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/20">
+              <div className="w-11 h-11 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/25">
                 <span className="text-white font-bold text-xl">T</span>
               </div>
-              <span className="font-bold text-white text-lg tracking-tight">TalentHorizon</span>
+              <span className="font-bold text-white text-xl tracking-tight">TalentHorizon</span>
             </div>
           </Link>
           <button
@@ -450,7 +450,7 @@ export default function Dashboard() {
         </div>
 
         {/* User Info Card */}
-        <div className="p-5 border-b border-white/10">
+        <div className="p-5 border-b border-white/15">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
               <span className="text-white font-bold text-lg">
@@ -458,8 +458,8 @@ export default function Dashboard() {
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-white truncate">{user?.name || "User"}</p>
-              <p className="text-sm text-white/60 truncate">{user?.email || "user@example.com"}</p>
+              <p className="font-semibold text-white truncate text-lg">{user?.name || "User"}</p>
+              <p className="text-sm text-white/70 truncate">{user?.email || "user@example.com"}</p>
             </div>
           </div>
           
@@ -495,11 +495,11 @@ export default function Dashboard() {
                         setActiveSection('messages');
                         setIsMobileSidebarOpen(false);
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-white/70 hover:text-white hover:translate-x-1 hover:bg-white/10"
+                      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 text-white/80 hover:text-white hover:translate-x-1 hover:bg-white/15"
                       style={{ transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)' }}
                     >
-                      <Icon className="w-5 h-5" />
-                      <span className="font-medium">{item.label}</span>
+                      <Icon className="w-6 h-6" />
+                      <span className="font-medium text-base">{item.label}</span>
                       {unreadConversationCount > 0 && (
                         <span className="ml-auto bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
                           {unreadConversationCount}
@@ -517,11 +517,11 @@ export default function Dashboard() {
                       setActiveSection(item.id);
                       setIsMobileSidebarOpen(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 text-white/70 hover:text-white hover:translate-x-1 hover:bg-white/10"
+                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 text-white/80 hover:text-white hover:translate-x-1 hover:bg-white/15"
                     style={{ transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)' }}
                   >
-                    <Icon className="w-5 h-5" />
-                    <span className="font-medium">{item.label}</span>
+                    <Icon className="w-6 h-6" />
+                    <span className="font-medium text-base">{item.label}</span>
                   </button>
                 </li>
               );
@@ -530,13 +530,13 @@ export default function Dashboard() {
         </nav>
 
         {/* Logout Button */}
-        <div className="p-4 border-t border-white/10">
+        <div className="p-4 border-t border-white/15">
           <button
             onClick={() => logout()}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all duration-200"
+            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-white/80 hover:bg-white/15 hover:text-white transition-all duration-200"
           >
-            <LogOut className="w-5 h-5" />
-            <span className="font-medium">Sign Out</span>
+            <LogOut className="w-6 h-6" />
+            <span className="font-medium text-base">Sign Out</span>
           </button>
         </div>
       </aside>
