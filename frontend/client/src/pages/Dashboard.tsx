@@ -286,6 +286,7 @@ export default function Dashboard() {
             jobId: app.jobId,
             status: app.status,
             createdAt: app.appliedAt,
+            appliedAt: app.appliedAt,
             coverLetter: app.coverLetter,
             job: {
               id: app.jobId,
@@ -2347,8 +2348,8 @@ export default function Dashboard() {
                     <div>
                       <p className="font-medium text-slate-800">Application Submitted</p>
                       <p className="text-sm text-slate-500">
-                        {selectedApplication.appliedAt 
-                          ? new Date(selectedApplication.appliedAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                        {(selectedApplication.appliedAt || selectedApplication.createdAt)
+                          ? new Date(selectedApplication.appliedAt || selectedApplication.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
                           : 'Date not available'
                         }
                       </p>
