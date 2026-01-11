@@ -388,9 +388,9 @@ export default function Dashboard() {
               startTime: '14:00',
               endTime: '15:00',
               type: 'interview',
-              location: 'Video Call',
-              description: 'Technical interview with the engineering team',
-              meetingLink: 'https://zoom.us/j/123456789',
+              location: 'In-App Chat',
+              description: 'Technical interview with the engineering team via chat',
+              meetingLink: '',
               createdAt: new Date().toISOString()
             },
             {
@@ -427,8 +427,8 @@ export default function Dashboard() {
               startTime: '09:00',
               endTime: '11:00',
               type: 'interview',
-              location: 'On-site - Seattle, WA',
-              description: 'Final round with the leadership team',
+              location: 'In-App Chat',
+              description: 'Final round interview with the leadership team via chat',
               meetingLink: '',
               createdAt: new Date().toISOString()
             }
@@ -2576,7 +2576,7 @@ export default function Dashboard() {
                 <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-slate-200/50">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-[#1e3a5f]/15 to-[#1e3a5f]/5 rounded-lg flex items-center justify-center">
-                      <Video className="w-5 h-5 text-[#1e3a5f]" />
+                      <MessageSquare className="w-5 h-5 text-[#1e3a5f]" />
                     </div>
                     <div>
                       <p className="text-xl sm:text-2xl font-bold text-slate-800">{calendarEvents.filter(e => e.type === 'interview').length}</p>
@@ -2743,7 +2743,7 @@ export default function Dashboard() {
                             <div className="flex items-start gap-3">
                               <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${getEventTypeStyle(event.type)}`}>
                                 {event.type === 'interview' ? (
-                                  <Video className="w-4 h-4 sm:w-5 sm:h-5" />
+                                  <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
                                 ) : event.type === 'chat' ? (
                                   <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
                                 ) : (
@@ -2811,7 +2811,7 @@ export default function Dashboard() {
                             <div className="flex items-start gap-3 sm:gap-4">
                               <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${getEventTypeStyle(event.type)}`}>
                                 {event.type === 'interview' ? (
-                                  <Video className="w-5 h-5 sm:w-6 sm:h-6" />
+                                  <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
                                 ) : event.type === 'chat' ? (
                                   <MessageSquare className="w-5 h-5 sm:w-6 sm:h-6" />
                                 ) : (
@@ -2905,7 +2905,7 @@ export default function Dashboard() {
                     <div className="flex items-center gap-3">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${getEventTypeStyle(selectedEvent.type)}`}>
                         {selectedEvent.type === 'interview' ? (
-                          <Video className="w-6 h-6" />
+                          <MessageSquare className="w-6 h-6" />
                         ) : selectedEvent.type === 'chat' ? (
                           <MessageSquare className="w-6 h-6" />
                         ) : (
@@ -2963,8 +2963,8 @@ export default function Dashboard() {
                         rel="noopener noreferrer"
                         className="font-semibold text-[#1e3a5f] mt-1 flex items-center gap-2 hover:underline"
                       >
-                        <Video className="w-4 h-4" />
-                        Join Meeting
+                        <MessageSquare className="w-4 h-4" />
+                        Start Chat Interview
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     </div>
@@ -2990,8 +2990,8 @@ export default function Dashboard() {
                       className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] text-white"
                       onClick={() => window.open(selectedEvent.meetingLink, '_blank')}
                     >
-                      <Video className="w-4 h-4 mr-2" />
-                      Join Meeting
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Start Chat Interview
                     </Button>
                   )}
                 </div>
@@ -3083,7 +3083,7 @@ export default function Dashboard() {
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>
                     <Input 
-                      placeholder="e.g., Video Call, On-site"
+                      placeholder="e.g., In-App Chat, On-site"
                       value={newEvent.location}
                       onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
                       className="border-slate-200 focus:border-[#1e3a5f] focus:ring-[#1e3a5f]"
