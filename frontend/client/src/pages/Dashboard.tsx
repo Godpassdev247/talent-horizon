@@ -1289,8 +1289,8 @@ export default function Dashboard() {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-slate-200/50">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-50 rounded-lg flex items-center justify-center">
-                      <FileText className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#1e3a5f]/15 to-[#1e3a5f]/5 rounded-lg flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-[#1e3a5f]" />
                     </div>
                     <div>
                       <p className="text-xl sm:text-2xl font-bold text-slate-800">{resumes.length}</p>
@@ -1300,8 +1300,8 @@ export default function Dashboard() {
                 </div>
                 <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-slate-200/50">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-green-100 to-green-50 rounded-lg flex items-center justify-center">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#1e3a5f]/15 to-[#1e3a5f]/5 rounded-lg flex items-center justify-center">
+                      <CheckCircle className="w-5 h-5 text-[#1e3a5f]" />
                     </div>
                     <div>
                       <p className="text-xl sm:text-2xl font-bold text-slate-800">{resumes.filter(r => r.isDefault).length}</p>
@@ -1311,8 +1311,8 @@ export default function Dashboard() {
                 </div>
                 <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-slate-200/50">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-50 rounded-lg flex items-center justify-center">
-                      <Send className="w-5 h-5 text-purple-600" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#1e3a5f]/15 to-[#1e3a5f]/5 rounded-lg flex items-center justify-center">
+                      <Send className="w-5 h-5 text-[#1e3a5f]" />
                     </div>
                     <div>
                       <p className="text-xl sm:text-2xl font-bold text-slate-800">{resumes.reduce((acc, r) => acc + (r.timesUsed || 0), 0)}</p>
@@ -1322,8 +1322,8 @@ export default function Dashboard() {
                 </div>
                 <div className="bg-white/70 backdrop-blur-sm rounded-xl p-3 sm:p-4 border border-slate-200/50">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-orange-100 to-orange-50 rounded-lg flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-orange-600" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#1e3a5f]/15 to-[#1e3a5f]/5 rounded-lg flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-[#1e3a5f]" />
                     </div>
                     <div>
                       <p className="text-xl sm:text-2xl font-bold text-slate-800 truncate">
@@ -1351,7 +1351,7 @@ export default function Dashboard() {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
                         className={`bg-white/80 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 lg:p-6 border-2 transition-all hover:shadow-lg ${
-                          resume.isDefault ? 'border-green-300 bg-green-50/30' : 'border-slate-200/50 hover:border-[#1e3a5f]/30'
+                          resume.isDefault ? 'border-[#1e3a5f]/40 bg-[#1e3a5f]/5' : 'border-slate-200/50 hover:border-[#1e3a5f]/30'
                         }`}
                       >
                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -1359,17 +1359,17 @@ export default function Dashboard() {
                           <div className="flex items-start gap-3 sm:gap-4">
                             <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${
                               resume.isDefault 
-                                ? 'bg-gradient-to-br from-green-100 to-green-50 border border-green-200' 
+                                ? 'bg-gradient-to-br from-[#1e3a5f]/20 to-[#1e3a5f]/10 border border-[#1e3a5f]/30' 
                                 : 'bg-gradient-to-br from-[#1e3a5f]/10 to-[#1e3a5f]/5 border border-[#1e3a5f]/10'
                             }`}>
-                              <FileText className={`w-6 h-6 sm:w-7 sm:h-7 ${resume.isDefault ? 'text-green-600' : 'text-[#1e3a5f]'}`} />
+                              <FileText className="w-6 h-6 sm:w-7 sm:h-7 text-[#1e3a5f]" />
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <h3 className="font-bold text-slate-800 text-sm sm:text-base truncate max-w-[200px] sm:max-w-none">{resume.name}</h3>
                                 {resume.isDefault && (
-                                  <Badge className="bg-green-100 text-green-700 border-green-300 text-xs">
-                                    <Star className="w-3 h-3 mr-1 fill-green-500" />
+                                  <Badge className="bg-[#1e3a5f]/10 text-[#1e3a5f] border-[#1e3a5f]/30 text-xs">
+                                    <Star className="w-3 h-3 mr-1 fill-[#1e3a5f]" />
                                     Default
                                   </Badge>
                                 )}
@@ -1404,7 +1404,7 @@ export default function Dashboard() {
                                 variant="outline" 
                                 size="sm" 
                                 onClick={() => handleSetDefaultResume(resume.id)}
-                                className="border-green-200 text-green-700 hover:bg-green-50 text-xs sm:text-sm"
+                                className="border-[#1e3a5f]/30 text-[#1e3a5f] hover:bg-[#1e3a5f]/5 text-xs sm:text-sm"
                               >
                                 <Star className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                                 <span className="hidden xs:inline">Set </span>Default
@@ -1473,12 +1473,12 @@ export default function Dashboard() {
 
               {/* Tips Section */}
               {resumes.length > 0 && (
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 sm:p-5 border border-blue-100">
-                  <h4 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                <div className="bg-gradient-to-r from-[#1e3a5f]/5 to-[#1e3a5f]/10 rounded-xl p-4 sm:p-5 border border-[#1e3a5f]/20">
+                  <h4 className="font-semibold text-[#1e3a5f] mb-2 flex items-center gap-2">
                     <Award className="w-5 h-5" />
                     Resume Tips
                   </h4>
-                  <ul className="text-sm text-blue-700 space-y-1">
+                  <ul className="text-sm text-[#1e3a5f]/80 space-y-1">
                     <li>• Keep your default resume updated with your latest experience</li>
                     <li>• Create tailored versions for different job types</li>
                     <li>• Use PDF format for best compatibility</li>
@@ -1599,7 +1599,7 @@ export default function Dashboard() {
                       <p className="text-xs text-slate-500 uppercase tracking-wide">Status</p>
                       <p className="font-semibold text-slate-800 mt-1 flex items-center gap-2">
                         {selectedResume.isDefault ? (
-                          <><Star className="w-4 h-4 text-green-500 fill-green-500" /> Default Resume</>
+                          <><Star className="w-4 h-4 text-[#1e3a5f] fill-[#1e3a5f]" /> Default Resume</>
                         ) : (
                           'Active'
                         )}
@@ -1619,7 +1619,7 @@ export default function Dashboard() {
                         handleSetDefaultResume(selectedResume.id);
                         setSelectedResume({ ...selectedResume, isDefault: true });
                       }}
-                      className="border-green-200 text-green-700 hover:bg-green-50"
+                      className="border-[#1e3a5f]/30 text-[#1e3a5f] hover:bg-[#1e3a5f]/5"
                     >
                       <Star className="w-4 h-4 mr-2" />
                       Set as Default
