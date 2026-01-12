@@ -1060,8 +1060,8 @@ export default function Dashboard() {
         <div className={`p-5 lg:p-6 border-b border-slate-100 flex items-center ${isDesktopSidebarCollapsed ? "lg:justify-center" : "justify-between"}`}>
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer group">
-              <div className="w-11 h-11 bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8a] rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#1e3a5f]/20 group-hover:shadow-xl group-hover:shadow-[#1e3a5f]/30 transition-all duration-300">
-                <span className="text-white font-bold text-xl">T</span>
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#1e3a5f]/20 group-hover:shadow-xl group-hover:shadow-[#1e3a5f]/30 transition-all duration-300 overflow-hidden bg-white">
+                <img src="/sidebar-logo.png" alt="Talent Horizon" className="w-10 h-10 object-contain" />
               </div>
               <div className={`transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>
                 <span className="font-bold text-[#1e3a5f] text-xl tracking-tight">TalentHorizon</span>

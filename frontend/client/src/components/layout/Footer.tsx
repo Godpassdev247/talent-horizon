@@ -89,8 +89,8 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <Link href="/">
               <div className="flex items-center gap-3 mb-6 cursor-pointer">
-                <div className="w-10 h-10 bg-gradient-to-br from-orange to-orange-dark rounded-lg flex items-center justify-center">
-                  <span className="text-white font-display font-bold text-xl">T</span>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden bg-white">
+                  <img src="/sidebar-logo.png" alt="Talent Horizon" className="w-9 h-9 object-contain" />
                 </div>
                 <span className="font-display font-bold text-xl">
                   Talent<span className="text-orange">Horizon</span>
