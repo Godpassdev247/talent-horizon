@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { useFinancialApplications } from "@/contexts/FinancialApplicationsContext";
 import { motion } from "framer-motion";
 import { 
   FileText, Shield, Clock, CheckCircle, ArrowRight, Users,
@@ -104,6 +105,8 @@ const successStories = [
 
 export default function TaxRefund() {
   const [, navigate] = useLocation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionStep, setSubmissionStep] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [estimatedRefund, setEstimatedRefund] = useState(250000);
   const [formData, setFormData] = useState({
@@ -118,8 +121,49 @@ export default function TaxRefund() {
     agreeTerms: false,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { addTaxRefundApplication } = useFinancialApplications();
+
+  const submissionSteps = [
+    { label: 'Validating Information', icon: Shield },
+    { label: 'Encrypting Data', icon: Shield },
+    { label: 'Creating Application', icon: FileText },
+    { label: 'Finalizing Submission', icon: CheckCircle },
+  ];
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Scroll to top to show animation
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    setIsSubmitting(true);
+    setSubmissionStep(0);
+
+    // Professional loading animation with steps
+    for (let i = 0; i < submissionSteps.length; i++) {
+      setSubmissionStep(i);
+      await new Promise(resolve => setTimeout(resolve, 800));
+    }
+
+    // Save application to context (persisted in localStorage)
+    addTaxRefundApplication({
+      type: 'tax-refund',
+      status: 'submitted',
+      submittedAt: new Date().toISOString(),
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phone: formData.phone,
+      taxYear: new Date().getFullYear(),
+      employmentStatus: formData.employmentStatus,
+      filingStatus: formData.filingStatus,
+      estimatedIncome: parseFloat(formData.annualIncome) || 0,
+      estimatedRefund: estimatedRefund,
+    });
+
+    // Final delay before showing success
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setIsSubmitting(false);
     setIsSubmitted(true);
   };
 
@@ -131,6 +175,113 @@ export default function TaxRefund() {
       maximumFractionDigits: 0,
     }).format(value);
   };
+
+  // Loading animation screen
+  if (isSubmitting) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 py-20">
+          <div className="container max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-2xl shadow-xl p-12"
+            >
+              {/* Animated Logo/Icon */}
+              <div className="flex justify-center mb-8">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  className="w-20 h-20 rounded-full bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8c] flex items-center justify-center"
+                >
+                  <FileText className="w-10 h-10 text-white" />
+                </motion.div>
+              </div>
+
+              <h2 className="font-display text-2xl font-bold text-center text-navy mb-2">
+                Processing Your Tax Filing Request
+              </h2>
+              <p className="text-slate-500 text-center mb-8">
+                Please wait while we securely process your information
+              </p>
+
+              {/* Progress Steps */}
+              <div className="space-y-4 mb-8">
+                {submissionSteps.map((step, index) => {
+                  const StepIcon = step.icon;
+                  const isActive = index === submissionStep;
+                  const isComplete = index < submissionStep;
+                  
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 ${
+                        isActive 
+                          ? 'bg-[#1e3a5f] text-white shadow-lg' 
+                          : isComplete 
+                            ? 'bg-green-50 text-green-700' 
+                            : 'bg-slate-50 text-slate-400'
+                      }`}
+                    >
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        isActive 
+                          ? 'bg-white/20' 
+                          : isComplete 
+                            ? 'bg-green-100' 
+                            : 'bg-slate-200'
+                      }`}>
+                        {isComplete ? (
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        ) : isActive ? (
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          >
+                            <StepIcon className="w-5 h-5" />
+                          </motion.div>
+                        ) : (
+                          <StepIcon className="w-5 h-5" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className={`font-medium ${
+                          isActive ? 'text-white' : isComplete ? 'text-green-700' : 'text-slate-500'
+                        }`}>
+                          {step.label}
+                        </p>
+                        {isActive && (
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: '100%' }}
+                            transition={{ duration: 0.8 }}
+                            className="h-1 bg-white/30 rounded-full mt-2"
+                          />
+                        )}
+                      </div>
+                      {isComplete && (
+                        <span className="text-sm font-medium text-green-600">Complete</span>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* Security Badge */}
+              <div className="flex items-center justify-center gap-2 text-slate-500 text-sm">
+                <Shield className="w-4 h-4" />
+                <span>256-bit SSL Encrypted • Bank-Level Security</span>
+              </div>
+            </motion.div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   // Success screen
   if (isSubmitted) {
@@ -190,7 +341,7 @@ export default function TaxRefund() {
               </div>
 
               <div className="space-y-4">
-                <Link href="/dashboard?tab=financial">
+                <Link href="/dashboard?tab=financial&section=tax-refund">
                   <Button className="w-full bg-orange hover:bg-orange-dark text-white">
                     View Application Status
                     <ArrowRight className="w-4 h-4 ml-2" />

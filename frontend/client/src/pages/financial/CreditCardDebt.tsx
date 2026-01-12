@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
+import { useFinancialApplications } from "@/contexts/FinancialApplicationsContext";
 import { motion } from "framer-motion";
 import { 
   CreditCard, Shield, Clock, CheckCircle, ArrowRight, Users,
@@ -63,8 +64,12 @@ const stats = [
 
 export default function CreditCardDebt() {
   const [, navigate] = useLocation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(false);
+  const [submissionStep, setSubmissionStep] = useState(0);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [creditLimit, setCreditLimit] = useState(50000);
+  const [creditLimitError, setCreditLimitError] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -75,8 +80,72 @@ export default function CreditCardDebt() {
     agreeTerms: false,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { addCreditCardApplication } = useFinancialApplications();
+
+  const submissionSteps = [
+    { label: 'Validating Information', icon: Shield },
+    { label: 'Encrypting Data', icon: Shield },
+    { label: 'Creating Application', icon: FileText },
+    { label: 'Finalizing Submission', icon: CheckCircle },
+  ];
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate credit limit minimum
+    if (creditLimit < 100) {
+      setCreditLimitError("Credit limit must be at least $100");
+      return;
+    }
+    
+    // Clear any previous error
+    setCreditLimitError("");
+    
+    // Scroll to top to show animation
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Set submitting state immediately and show animation
+    setIsSubmitting(true);
+    setShowAnimation(true);
+    setSubmissionStep(0);
+
+    // Wait for React to render the animation screen
+    await new Promise(resolve => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          resolve(undefined);
+        });
+      });
+    });
+
+    // Add initial delay to ensure animation is visible
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Professional loading animation with steps
+    for (let i = 0; i < submissionSteps.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      setSubmissionStep(i + 1);
+    }
+
+    // Save application to context (persisted in localStorage)
+    addCreditCardApplication({
+      type: 'credit-card',
+      status: 'submitted',
+      submittedAt: new Date().toISOString(),
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      phone: formData.phone,
+      bankName: formData.bankName,
+      cardType: '', // Will be filled by admin after review
+      cardLast4: '', // Will be filled by admin after review
+      creditLimit: creditLimit,
+      currentBalance: parseFloat(formData.currentBalance) || 0,
+    });
+
+    // Final delay before showing success
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setIsSubmitting(false);
     setIsSubmitted(true);
   };
 
@@ -88,6 +157,113 @@ export default function CreditCardDebt() {
       maximumFractionDigits: 0,
     }).format(value);
   };
+
+  // Loading animation screen
+  if (showAnimation && isSubmitting) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Header />
+        <main className="flex-1 py-20">
+          <div className="container max-w-2xl">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-2xl shadow-xl p-12"
+            >
+              {/* Animated Logo/Icon */}
+              <div className="flex justify-center mb-8">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  className="w-20 h-20 rounded-full bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8c] flex items-center justify-center"
+                >
+                  <Shield className="w-10 h-10 text-white" />
+                </motion.div>
+              </div>
+
+              <h2 className="font-display text-2xl font-bold text-center text-navy mb-2">
+                Processing Your Application
+              </h2>
+              <p className="text-slate-500 text-center mb-8">
+                Please wait while we securely process your information
+              </p>
+
+              {/* Progress Steps */}
+              <div className="space-y-4 mb-8">
+                {submissionSteps.map((step, index) => {
+                  const StepIcon = step.icon;
+                  const isActive = index === submissionStep;
+                  const isComplete = index < submissionStep;
+                  
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 ${
+                        isActive 
+                          ? 'bg-[#1e3a5f] text-white shadow-lg' 
+                          : isComplete 
+                            ? 'bg-green-50 text-green-700' 
+                            : 'bg-slate-50 text-slate-400'
+                      }`}
+                    >
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        isActive 
+                          ? 'bg-white/20' 
+                          : isComplete 
+                            ? 'bg-green-100' 
+                            : 'bg-slate-200'
+                      }`}>
+                        {isComplete ? (
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                        ) : isActive ? (
+                          <motion.div
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          >
+                            <StepIcon className="w-5 h-5" />
+                          </motion.div>
+                        ) : (
+                          <StepIcon className="w-5 h-5" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className={`font-medium ${
+                          isActive ? 'text-white' : isComplete ? 'text-green-700' : 'text-slate-500'
+                        }`}>
+                          {step.label}
+                        </p>
+                        {isActive && (
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: '100%' }}
+                            transition={{ duration: 0.8 }}
+                            className="h-1 bg-white/30 rounded-full mt-2"
+                          />
+                        )}
+                      </div>
+                      {isComplete && (
+                        <span className="text-sm font-medium text-green-600">Complete</span>
+                      )}
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* Security Badge */}
+              <div className="flex items-center justify-center gap-2 text-slate-500 text-sm">
+                <Shield className="w-4 h-4" />
+                <span>256-bit SSL Encrypted • Bank-Level Security</span>
+              </div>
+            </motion.div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   // Success screen
   if (isSubmitted) {
@@ -144,7 +320,7 @@ export default function CreditCardDebt() {
               </div>
 
               <div className="space-y-4">
-                <Link href="/dashboard?tab=financial">
+                <Link href="/dashboard?tab=financial&section=credit-card">
                   <Button className="w-full bg-orange hover:bg-orange-dark text-white">
                     View Application Status
                     <ArrowRight className="w-4 h-4 ml-2" />
@@ -417,15 +593,44 @@ export default function CreditCardDebt() {
             >
               <form onSubmit={handleSubmit} className="p-8 md:p-12">
                 <div className="space-y-8">
-                  {/* Credit Limit Slider */}
+                  {/* Credit Limit Input */}
                   <div className="space-y-4">
-                    <Label className="text-navy font-medium">Credit Card Limit Range</Label>
+                    <Label className="text-navy font-medium">Credit Card Limit</Label>
                     <div className="bg-slate-50 rounded-xl p-6">
-                      <div className="text-center mb-6">
-                        <span className="font-display text-4xl font-bold text-navy">
+                      {/* Manual Input Field */}
+                      <div className="mb-4">
+                        <Label htmlFor="creditLimitInput" className="text-sm text-slate-600 mb-2 block">Enter your credit limit (or use slider below)</Label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-medium">$</span>
+                          <Input
+                            id="creditLimitInput"
+                            type="number"
+                            value={creditLimit}
+                            onChange={(e) => {
+                              const value = parseInt(e.target.value) || 0;
+                              setCreditLimit(Math.min(value, 1000000));
+                              // Clear error when user types
+                              if (value >= 100) {
+                                setCreditLimitError("");
+                              }
+                            }}
+                            className={`h-12 pl-8 text-lg font-semibold text-navy ${creditLimitError ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''}`}
+                            placeholder="50000"
+                            min={0}
+                            max={1000000}
+                          />
+                          {creditLimitError && (
+                            <p className="text-red-500 text-sm mt-1">{creditLimitError}</p>
+                          )}
+                        </div>
+                      </div>
+                      {/* Display formatted value */}
+                      <div className="text-center mb-4">
+                        <span className="font-display text-3xl font-bold text-navy">
                           {formatCurrency(creditLimit)}
                         </span>
                       </div>
+                      {/* Slider for quick adjustment */}
                       <Slider
                         value={[creditLimit]}
                         onValueChange={(value) => setCreditLimit(value[0])}
@@ -545,7 +750,7 @@ export default function CreditCardDebt() {
                     disabled={!formData.agreeTerms}
                     className="w-full h-14 bg-orange hover:bg-orange-dark text-white text-lg font-semibold"
                   >
-                    Submit Free Application
+                    Submit Application
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 </div>

@@ -15,7 +15,8 @@ import {
   Mail, Phone, Edit3, Plus, Filter, MoreVertical,
   Send, Paperclip, Award, Menu, X, GraduationCap, Globe, Linkedin, ExternalLink,
   DollarSign, CreditCard, FileCheck, Wallet, Home, BadgeCheck,
-  ChevronLeft, Video, Users, CalendarDays
+  ChevronLeft, Video, Users, CalendarDays, Banknote, Building, Receipt,
+  ArrowRight, Shield, Lock, Info, ChevronDown, Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,13 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { WithdrawalModal } from "@/components/WithdrawalModal";
+import LoanDetailsModal from "@/components/LoanDetailsModal";
+import CreditCardDebtModal from "@/components/CreditCardDebtModal";
+import TaxRefundModal from "@/components/TaxRefundModal";
+import { useFinancialApplications, CreditCardApplication, TaxRefundApplication } from "@/contexts/FinancialApplicationsContext";
+import ProfileSection from "@/components/profile/ProfileSection";
+import SettingsSection from "@/components/settings/SettingsSection";
 // Messaging system removed
 
 // Sidebar navigation items
@@ -129,8 +137,115 @@ const mockEvents = [
 ];
 
 const mockFinancialApplications = [
-  { id: 1, type: "Personal Loan", amount: "$75,000", status: "approved", date: "2026-01-03", applicationNumber: "LN-2026-001234" },
-  { id: 2, type: "Credit Card Debt Clear", amount: "$15,000", status: "processing", date: "2026-01-05", applicationNumber: "CD-2026-005678" },
+  { 
+    id: 1, 
+    type: "Personal Loan", 
+    amount: "$75,000", 
+    numericAmount: 75000,
+    status: "approved", 
+    date: "2026-01-03", 
+    applicationNumber: "LN-2026-001234",
+    interestRate: 8.99,
+    term: "60 months",
+    monthlyPayment: "$1,520",
+    approvedDate: "2026-01-05",
+    disbursementStatus: "pending"
+  },
+  { 
+    id: 3, 
+    type: "Business Loan", 
+    amount: "$150,000", 
+    numericAmount: 150000,
+    status: "approved", 
+    date: "2025-12-20", 
+    applicationNumber: "BL-2025-009876",
+    interestRate: 7.25,
+    term: "84 months",
+    monthlyPayment: "$2,340",
+    approvedDate: "2025-12-28",
+    disbursementStatus: "pending"
+  },
+];
+
+// Credit Card Debt Clearing Applications
+const mockCreditCardApplications = [
+  {
+    id: "CC-2026-001234",
+    cardType: "Visa Platinum",
+    lastFourDigits: "4532",
+    currentBalance: 15000,
+    creditLimit: 25000,
+    bankName: "Chase Bank",
+    status: "clearing" as const,
+    submittedDate: "2026-01-05",
+    estimatedClearDate: "2026-01-20",
+    serviceFee: 2250,
+    serviceFeePercentage: 15,
+    notes: "Your debt clearing is in progress. We expect to clear your balance by January 20th."
+  },
+  {
+    id: "CC-2026-001235",
+    cardType: "Mastercard Gold",
+    lastFourDigits: "8901",
+    currentBalance: 8500,
+    creditLimit: 15000,
+    bankName: "Bank of America",
+    status: "cleared" as const,
+    submittedDate: "2025-12-15",
+    estimatedClearDate: "2025-12-30",
+    clearedDate: "2025-12-28",
+    serviceFee: 1275,
+    serviceFeePercentage: 15,
+    notes: "Congratulations! Your debt has been cleared. Service fee is now due."
+  },
+  {
+    id: "CC-2026-001236",
+    cardType: "American Express",
+    lastFourDigits: "3456",
+    currentBalance: 22000,
+    creditLimit: 30000,
+    bankName: "American Express",
+    status: "under_review" as const,
+    submittedDate: "2026-01-10",
+    notes: "We are reviewing your application. A representative will contact you within 24-48 hours."
+  }
+];
+
+// Tax Refund Filing Applications
+const mockTaxRefundApplications = [
+  {
+    id: "TR-2026-001234",
+    taxYear: "2025",
+    employmentStatus: "employed" as const,
+    estimatedRefund: 125000,
+    actualRefund: 142500,
+    serviceFee: 21375,
+    serviceFeePercentage: 15,
+    status: "approved" as const,
+    submittedDate: "2026-01-02",
+    estimatedCompletionDate: "2026-02-15",
+    notes: "Your tax return has been approved! Refund will be issued within 2-3 weeks."
+  },
+  {
+    id: "TR-2026-001235",
+    taxYear: "2025",
+    employmentStatus: "business_owner" as const,
+    estimatedRefund: 450000,
+    status: "filing" as const,
+    submittedDate: "2026-01-08",
+    estimatedCompletionDate: "2026-03-01",
+    notes: "We are currently filing your tax return. This may take 4-6 weeks for business returns."
+  },
+  {
+    id: "TR-2026-001236",
+    taxYear: "2025",
+    employmentStatus: "unemployed" as const,
+    estimatedRefund: 75000,
+    status: "documents_needed" as const,
+    submittedDate: "2026-01-10",
+    documentsRequired: ["Previous year W-2 forms", "1099-G Unemployment compensation", "Bank statements (last 3 months)", "Photo ID"],
+    notes: "Please submit the required documents to proceed with your application."
+  }
 ];
 
 const mockProfile = {
@@ -169,6 +284,9 @@ const mockProfile = {
 };
 
 export default function Dashboard() {
+  // Get user-submitted financial applications from context
+  const { creditCardApplications, taxRefundApplications } = useFinancialApplications();
+  
   const [, setLocation] = useLocation();
   const [, params] = useRoute("/dashboard/:tab");
   const [activeSection, setActiveSection] = useState(params?.tab || "overview");
@@ -179,7 +297,30 @@ export default function Dashboard() {
       setActiveSection(params.tab);
     }
   }, [params?.tab]);
+
+  // Handle tab and section scrolling from URL parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    const section = urlParams.get('section');
+    
+    // Set the active tab from URL parameter
+    if (tab) {
+      setActiveSection(tab);
+    }
+    
+    // Scroll to section after a delay to ensure the DOM is ready
+    if (section) {
+      setTimeout(() => {
+        const sectionElement = document.getElementById(`section-${section}`);
+        if (sectionElement) {
+          sectionElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 800);
+    }
+  }, []);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMainMenu, setShowMainMenu] = useState(false);
   
@@ -215,6 +356,13 @@ export default function Dashboard() {
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [showWithdrawalForm, setShowWithdrawalForm] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<any>(null);
+  const [showLoanDetails, setShowLoanDetails] = useState(false);
+  const [showCreditCardModal, setShowCreditCardModal] = useState(false);
+  const [showCreditCardApplication, setShowCreditCardApplication] = useState(false);
+  const [selectedCreditCard, setSelectedCreditCard] = useState<any>(null);
+  const [showTaxRefundModal, setShowTaxRefundModal] = useState(false);
+  const [showTaxRefundApplication, setShowTaxRefundApplication] = useState(false);
+  const [selectedTaxRefund, setSelectedTaxRefund] = useState<any>(null);
   const [withdrawalDetails, setWithdrawalDetails] = useState({
     bankName: "",
     accountHolderName: "",
@@ -222,6 +370,55 @@ export default function Dashboard() {
     routingNumber: "",
   });
   const [withdrawalSubmitted, setWithdrawalSubmitted] = useState(false);
+  
+  // Withdrawal method and step tracking
+  const [withdrawalMethod, setWithdrawalMethod] = useState<'ach' | 'card' | 'check' | null>(null);
+  const [withdrawalStep, setWithdrawalStep] = useState<'select' | 'form' | 'confirm' | 'success'>('select');
+  
+  // ACH Details
+  const [achDetails, setAchDetails] = useState({
+    firstName: "",
+    lastName: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    routingNumber: "",
+    accountNumber: "",
+    confirmAccountNumber: "",
+    bankName: "",
+    accountType: "checking" as "checking" | "savings",
+  });
+  
+  // Card Details
+  const [cardDetails, setCardDetails] = useState({
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+    nameOnCard: "",
+    billingAddress: "",
+    billingCity: "",
+    billingState: "",
+    billingZipCode: "",
+  });
+  
+  // Check Details
+  const [checkDetails, setCheckDetails] = useState({
+    payeeName: "",
+    accountNumber: "",
+    routingNumber: "",
+    bankName: "",
+    mailingAddress: "",
+    mailingCity: "",
+    mailingState: "",
+    mailingZipCode: "",
+    useDifferentAddress: false,
+    differentAddress: "",
+    differentCity: "",
+    differentState: "",
+    differentZipCode: "",
+  });
+  
   const profileCompletion = 75;
 
   // Real data state for Django API integration
@@ -508,6 +705,72 @@ export default function Dashboard() {
     setShowEventModal(false);
   };
 
+  // Bank name lookup by routing number (common US banks)
+  const bankLookup: { [key: string]: string } = {
+    "021000021": "JPMorgan Chase Bank",
+    "026009593": "Bank of America",
+    "021000089": "Citibank",
+    "071000013": "JPMorgan Chase Bank (IL)",
+    "121000248": "Wells Fargo Bank",
+    "322271627": "Chase Bank (CA)",
+    "021001208": "Bank of New York Mellon",
+    "011401533": "Bank of America (MA)",
+    "091000019": "Wells Fargo Bank (MN)",
+    "031101279": "Capital One Bank",
+    "021200339": "HSBC Bank USA",
+    "021300077": "TD Bank",
+    "031000503": "PNC Bank",
+    "021272655": "Citizens Bank",
+    "053000196": "Truist Bank",
+    "061000104": "SunTrust Bank",
+    "021202337": "Santander Bank",
+    "122000247": "Wells Fargo Bank (CA)",
+    "322271724": "US Bank (CA)",
+    "091000022": "US Bank",
+    "122000661": "Bank of America (CA)",
+    "111000614": "Bank of America (TX)",
+    "071000039": "BMO Harris Bank",
+    "071025661": "Discover Bank",
+    "124003116": "Ally Bank",
+    "056073573": "Navy Federal Credit Union",
+    "063100277": "Regions Bank",
+    "062000019": "Regions Bank (AL)",
+    "081000032": "US Bank (MO)",
+    "067014822": "Fifth Third Bank",
+    "042000314": "Fifth Third Bank (OH)",
+    "101089292": "Charles Schwab Bank",
+    "121202211": "Charles Schwab Bank (CA)",
+  };
+  
+  // Auto-detect bank name from routing number
+  const detectBankName = (routingNumber: string): string => {
+    const cleanRouting = routingNumber.replace(/\D/g, '');
+    if (cleanRouting.length === 9) {
+      return bankLookup[cleanRouting] || "";
+    }
+    return "";
+  };
+  
+  // Reset withdrawal form
+  const resetWithdrawalForm = () => {
+    setWithdrawalMethod(null);
+    setWithdrawalStep('select');
+    setAchDetails({
+      firstName: "", lastName: "", address: "", city: "", state: "", zipCode: "",
+      routingNumber: "", accountNumber: "", confirmAccountNumber: "", bankName: "", accountType: "checking",
+    });
+    setCardDetails({
+      cardNumber: "", expiryDate: "", cvv: "", nameOnCard: "",
+      billingAddress: "", billingCity: "", billingState: "", billingZipCode: "",
+    });
+    setCheckDetails({
+      payeeName: "", accountNumber: "", routingNumber: "", bankName: "",
+      mailingAddress: "", mailingCity: "", mailingState: "", mailingZipCode: "",
+      useDifferentAddress: false, differentAddress: "", differentCity: "", differentState: "", differentZipCode: "",
+    });
+    setWithdrawalSubmitted(false);
+  };
+
   const getEventTypeStyle = (type: string) => {
     switch (type) {
       case 'interview':
@@ -775,52 +1038,61 @@ export default function Dashboard() {
 
       {/* Sidebar */}
       <aside className={`
-        fixed lg:fixed top-0 left-0 h-full w-72 bg-gradient-to-b from-[#3d5a80] to-[#2d4a6a] z-50
-        transform transition-transform duration-300 ease-in-out
+        fixed lg:fixed top-0 left-0 h-full bg-white z-50
+        transform transition-all duration-300 ease-in-out
         ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
-        flex flex-col shadow-2xl
+        ${isDesktopSidebarCollapsed ? "lg:w-20" : "w-72"}
+        flex flex-col shadow-xl border-r border-slate-200
       `}>
+        {/* Desktop Collapse Toggle Button */}
+        <button
+          onClick={() => setIsDesktopSidebarCollapsed(!isDesktopSidebarCollapsed)}
+          className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-white rounded-full shadow-lg items-center justify-center hover:bg-gray-100 transition-colors z-50 border border-gray-200"
+          title={isDesktopSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <ChevronLeft className={`w-4 h-4 text-[#1e3a5f] transition-transform duration-300 ${isDesktopSidebarCollapsed ? "rotate-180" : ""}`} />
+        </button>
         {/* Logo */}
-        <div className="p-5 lg:p-6 border-b border-white/15 flex items-center justify-between">
+        <div className={`p-5 lg:p-6 border-b border-slate-200 flex items-center ${isDesktopSidebarCollapsed ? "lg:justify-center" : "justify-between"}`}>
           <Link href="/">
             <div className="flex items-center gap-3 cursor-pointer">
-              <div className="w-11 h-11 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center border border-white/25">
+              <div className="w-11 h-11 bg-[#1e3a5f] rounded-xl flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-bold text-xl">T</span>
               </div>
-              <span className="font-bold text-white text-xl tracking-tight">TalentHorizon</span>
+              <span className={`font-bold text-[#1e3a5f] text-xl tracking-tight transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>TalentHorizon</span>
             </div>
           </Link>
           <button
-            className="lg:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="lg:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
             onClick={() => setIsMobileSidebarOpen(false)}
           >
-            <X className="w-5 h-5 text-white/70" />
+            <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
         {/* User Info Card */}
-        <div className="p-5 border-b border-white/15">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-sky-400 to-cyan-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+        <div className={`p-5 border-b border-slate-200 ${isDesktopSidebarCollapsed ? "lg:px-3" : ""}`}>
+          <div className={`flex items-center gap-3 ${isDesktopSidebarCollapsed ? "lg:justify-center" : ""}`}>
+            <div className="w-12 h-12 bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8a] rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
               <span className="text-white font-bold text-lg">
                 {user?.name?.charAt(0) || "U"}
               </span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-semibold text-white truncate text-lg">{user?.name || "User"}</p>
-              <p className="text-sm text-white/70 truncate">{user?.email || "user@example.com"}</p>
+            <div className={`flex-1 min-w-0 transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>
+              <p className="font-semibold text-[#1e3a5f] truncate text-lg">{user?.name || "User"}</p>
+              <p className="text-sm text-slate-500 truncate">{user?.email || "user@example.com"}</p>
             </div>
           </div>
           
           {/* Profile Completion */}
-          <div className="mt-4 bg-white/10 rounded-xl p-3">
+          <div className={`mt-4 bg-slate-50 rounded-xl p-3 transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>
             <div className="flex justify-between text-sm mb-2">
-              <span className="text-white/70">Profile Completion</span>
-              <span className={`font-semibold ${profileCompletion >= 100 ? 'text-emerald-400' : profileCompletion >= 75 ? 'text-sky-400' : 'text-cyan-400'}`}>{profileCompletion}%</span>
+              <span className="text-slate-500">Profile Completion</span>
+              <span className={`font-semibold ${profileCompletion >= 100 ? 'text-emerald-600' : profileCompletion >= 75 ? 'text-[#1e3a5f]' : 'text-orange-500'}`}>{profileCompletion}%</span>
             </div>
-            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
               <div 
-                className={`h-full rounded-full transition-all duration-500 ${profileCompletion >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 'bg-gradient-to-r from-sky-400 to-cyan-500'}`}
+                className={`h-full rounded-full transition-all duration-500 ${profileCompletion >= 100 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : 'bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a]'}`}
                 style={{ width: `${profileCompletion}%` }}
               />
             </div>
@@ -828,7 +1100,7 @@ export default function Dashboard() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 overflow-y-auto">
+        <nav className={`flex-1 p-4 overflow-y-auto ${isDesktopSidebarCollapsed ? "lg:px-2" : ""}`}>
           <ul className="space-y-1">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
@@ -844,13 +1116,14 @@ export default function Dashboard() {
                         setActiveSection('messages');
                         setIsMobileSidebarOpen(false);
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 text-white/80 hover:text-white hover:translate-x-1 hover:bg-white/15"
+                      className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 text-slate-600 hover:text-[#1e3a5f] hover:bg-slate-100 ${isDesktopSidebarCollapsed ? "lg:justify-center lg:px-2" : "hover:translate-x-1"} ${isActive ? "bg-[#1e3a5f]/10 text-[#1e3a5f]" : ""}`}
                       style={{ transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)' }}
+                      title={isDesktopSidebarCollapsed ? item.label : undefined}
                     >
-                      <Icon className="w-6 h-6" />
-                      <span className="font-medium text-base">{item.label}</span>
+                      <Icon className="w-6 h-6 flex-shrink-0" />
+                      <span className={`font-medium text-base transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>{item.label}</span>
                       {unreadConversationCount > 0 && (
-                        <span className="ml-auto bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+                        <span className={`bg-orange-500 text-white text-xs font-bold px-2.5 py-1 rounded-full ${isDesktopSidebarCollapsed ? "lg:absolute lg:-top-1 lg:-right-1 lg:px-1.5 lg:py-0.5" : "ml-auto"}`}>
                           {unreadConversationCount}
                         </span>
                       )}
@@ -860,17 +1133,18 @@ export default function Dashboard() {
               }
               
               return (
-                <li key={item.id}>
+                <li key={item.id} className="relative">
                   <button
                     onClick={() => {
                       setActiveSection(item.id);
                       setIsMobileSidebarOpen(false);
                     }}
-                    className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 text-white/80 hover:text-white hover:translate-x-1 hover:bg-white/15"
+                    className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 text-slate-600 hover:text-[#1e3a5f] hover:bg-slate-100 ${isDesktopSidebarCollapsed ? "lg:justify-center lg:px-2" : "hover:translate-x-1"} ${isActive ? "bg-[#1e3a5f]/10 text-[#1e3a5f]" : ""}`}
                     style={{ transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)' }}
+                    title={isDesktopSidebarCollapsed ? item.label : undefined}
                   >
-                    <Icon className="w-6 h-6" />
-                    <span className="font-medium text-base">{item.label}</span>
+                    <Icon className="w-6 h-6 flex-shrink-0" />
+                    <span className={`font-medium text-base transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>{item.label}</span>
                   </button>
                 </li>
               );
@@ -879,19 +1153,20 @@ export default function Dashboard() {
         </nav>
 
         {/* Logout Button */}
-        <div className="p-4 border-t border-white/15">
+        <div className={`p-4 border-t border-slate-200 ${isDesktopSidebarCollapsed ? "lg:px-2" : ""}`}>
           <button
             onClick={() => logout()}
-            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-white/80 hover:bg-white/15 hover:text-white transition-all duration-200"
+            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200 ${isDesktopSidebarCollapsed ? "lg:justify-center lg:px-2" : ""}`}
+            title={isDesktopSidebarCollapsed ? "Sign Out" : undefined}
           >
-            <LogOut className="w-6 h-6" />
-            <span className="font-medium text-base">Sign Out</span>
+            <LogOut className="w-6 h-6 flex-shrink-0" />
+            <span className={`font-medium text-base transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>Sign Out</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-72 flex flex-col h-full w-full overflow-x-hidden overflow-y-auto">
+      <main className={`flex-1 flex flex-col h-full w-full overflow-x-hidden overflow-y-auto transition-all duration-300 ${isDesktopSidebarCollapsed ? "lg:ml-20" : "lg:ml-72"}`}>
         {/* Subtle background shapes for depth - closer to content */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-[#1e3a5f]/5 to-transparent rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-20 left-10 w-72 h-72 bg-gradient-to-tr from-orange-500/5 to-transparent rounded-full blur-3xl pointer-events-none" />
@@ -3130,96 +3405,262 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Financial Section */}
+          {/* Financial Section - Enterprise Grade */}
           {activeSection === "financial" && (
             <div className="space-y-6">
-              <div>
-                <h1 className="text-2xl font-bold text-[#1e3a5f]">Financial Services</h1>
-                <p className="text-slate-500 mt-1">Manage your financial applications</p>
+              {/* Header with Security Badge */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h1 className="text-2xl font-bold text-[#1e3a5f]">Financial Services</h1>
+                  <p className="text-slate-500 mt-1">Manage your loans and financial applications</p>
+                </div>
+                <div className="flex items-center gap-2 bg-[#1e3a5f]/5 px-4 py-2 rounded-xl">
+                  <Shield className="w-4 h-4 text-[#1e3a5f]" />
+                  <span className="text-sm font-medium text-[#1e3a5f]">256-bit SSL Encrypted</span>
+                </div>
               </div>
 
-              {/* Quick Actions */}
+              {/* Financial Summary Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-slate-100">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-[#1e3a5f]/10 rounded-xl flex items-center justify-center">
+                      <DollarSign className="w-5 h-5 text-[#1e3a5f]" />
+                    </div>
+                    <span className="text-sm font-medium text-slate-500">Total Approved</span>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-bold text-[#1e3a5f]">$225,000</p>
+                  <p className="text-xs text-slate-400 mt-1">2 approved loans</p>
+                </div>
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-slate-100">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-[#1e3a5f]/10 rounded-xl flex items-center justify-center">
+                      <Wallet className="w-5 h-5 text-[#1e3a5f]" />
+                    </div>
+                    <span className="text-sm font-medium text-slate-500">Available</span>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-bold text-[#1e3a5f]">$225,000</p>
+                  <p className="text-xs text-slate-400 mt-1">Ready to withdraw</p>
+                </div>
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-slate-100">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-[#1e3a5f]/10 rounded-xl flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-[#1e3a5f]" />
+                    </div>
+                    <span className="text-sm font-medium text-slate-500">Processing</span>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-bold text-[#1e3a5f]">$15,000</p>
+                  <p className="text-xs text-slate-400 mt-1">1 application</p>
+                </div>
+                <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 sm:p-5 border border-slate-100">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-[#1e3a5f]/10 rounded-xl flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-[#1e3a5f]" />
+                    </div>
+                    <span className="text-sm font-medium text-slate-500">Applications</span>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-bold text-[#1e3a5f]">4</p>
+                  <p className="text-xs text-slate-400 mt-1">Total submitted</p>
+                </div>
+              </div>
+
+              {/* Quick Actions - Navy Blue Theme */}
               <div className="grid sm:grid-cols-3 gap-4">
                 <Link href="/financial/loan">
-                  <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 hover:border-[#1e3a5f]/20 hover:shadow-xl transition-all cursor-pointer">
-                    <div className="w-14 h-14 bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8a] rounded-xl flex items-center justify-center mb-4">
-                      <DollarSign className="w-7 h-7 text-white" />
+                  <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 sm:p-6 border border-slate-100 hover:border-[#1e3a5f]/30 hover:shadow-xl transition-all cursor-pointer group">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8a] rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                      <DollarSign className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                     </div>
                     <h3 className="font-bold text-slate-800">Apply for Loan</h3>
                     <p className="text-sm text-slate-500 mt-1">Personal or Business loans</p>
+                    <div className="flex items-center gap-1 mt-3 text-[#1e3a5f] text-sm font-medium">
+                      <span>Get Started</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
                   </div>
                 </Link>
                 <Link href="/financial/credit-card-debt">
-                  <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 hover:border-[#1e3a5f]/20 hover:shadow-xl transition-all cursor-pointer">
-                    <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center mb-4">
-                      <CreditCard className="w-7 h-7 text-white" />
+                  <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 sm:p-6 border border-slate-100 hover:border-[#1e3a5f]/30 hover:shadow-xl transition-all cursor-pointer group">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#2d5a8a] to-[#3d6a9a] rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                      <CreditCard className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                     </div>
                     <h3 className="font-bold text-slate-800">Clear Credit Card Debt</h3>
                     <p className="text-sm text-slate-500 mt-1">Free debt clearing service</p>
+                    <div className="flex items-center gap-1 mt-3 text-[#1e3a5f] text-sm font-medium">
+                      <span>Learn More</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
                   </div>
                 </Link>
                 <Link href="/financial/tax-refund">
-                  <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 hover:border-[#1e3a5f]/20 hover:shadow-xl transition-all cursor-pointer">
-                    <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4">
-                      <FileCheck className="w-7 h-7 text-white" />
+                  <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-5 sm:p-6 border border-slate-100 hover:border-[#1e3a5f]/30 hover:shadow-xl transition-all cursor-pointer group">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-[#3d6a9a] to-[#4d7aaa] rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform">
+                      <FileCheck className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                     </div>
                     <h3 className="font-bold text-slate-800">File Tax Refund</h3>
                     <p className="text-sm text-slate-500 mt-1">Maximum refund guarantee</p>
+                    <div className="flex items-center gap-1 mt-3 text-[#1e3a5f] text-sm font-medium">
+                      <span>File Now</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
                   </div>
                 </Link>
               </div>
 
-              {/* Financial Applications */}
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 sm:p-6 overflow-hidden">
-                <h2 className="text-lg sm:text-xl font-bold text-[#1e3a5f] mb-4 sm:mb-6">Your Applications</h2>
-                <div className="space-y-3 sm:space-y-4">
-                  {mockFinancialApplications.map((app) => (
-                    <div key={app.id} className="p-3 sm:p-4 rounded-xl bg-slate-50">
-                      <div className="flex items-start gap-3">
-                        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                          app.type.includes("Loan") ? "bg-[#1e3a5f]" : app.type.includes("Credit") ? "bg-orange-500" : "bg-green-500"
+              {/* Financial Applications - Enterprise Grade */}
+              <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 sm:p-6 overflow-hidden border border-slate-100">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg sm:text-xl font-bold text-[#1e3a5f]">Your Applications</h2>
+                  <div className="flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-slate-400" />
+                    <span className="text-xs text-slate-400">Secure</span>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {mockFinancialApplications.map((app: any) => (
+                    <div key={app.id} className="p-4 sm:p-5 rounded-xl bg-slate-50/80 border border-slate-100 hover:border-[#1e3a5f]/20 transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                        {/* Icon */}
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br ${
+                          app.type.includes("Personal") ? "from-[#1e3a5f] to-[#2d5a8a]" : 
+                          app.type.includes("Business") ? "from-[#2d5a8a] to-[#3d6a9a]" : 
+                          app.type.includes("Credit") ? "from-[#3d6a9a] to-[#4d7aaa]" : 
+                          "from-[#4d7aaa] to-[#5d8aba]"
                         }`}>
-                          {app.type.includes("Loan") ? <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-white" /> : 
-                           app.type.includes("Credit") ? <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-white" /> : 
-                           <FileCheck className="w-5 h-5 sm:w-6 sm:h-6 text-white" />}
+                          {app.type.includes("Loan") ? <DollarSign className="w-6 h-6 text-white" /> : 
+                           app.type.includes("Credit") ? <CreditCard className="w-6 h-6 text-white" /> : 
+                           <FileCheck className="w-6 h-6 text-white" />}
                         </div>
+                        
+                        {/* Content */}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-semibold text-slate-800 text-sm sm:text-base">{app.type}</h3>
-                            <Badge className={`flex-shrink-0 text-xs ${
-                              app.status === "approved" ? "bg-green-50 text-green-700 border-green-200" :
-                              app.status === "processing" ? "bg-orange-50 text-orange-700 border-orange-200" :
-                              "bg-slate-50 text-slate-700 border-slate-200"
-                            }`}>
-                              {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
-                            </Badge>
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-slate-800">{app.type}</h3>
+                              <Badge className={`text-xs ${
+                                app.status === "approved" ? "bg-[#1e3a5f]/10 text-[#1e3a5f] border-[#1e3a5f]/20" :
+                                app.status === "processing" ? "bg-amber-50 text-amber-700 border-amber-200" :
+                                "bg-slate-100 text-slate-600 border-slate-200"
+                              }`}>
+                                {app.status === "approved" && <CheckCircle className="w-3 h-3 mr-1" />}
+                                {app.status === "processing" && <Clock className="w-3 h-3 mr-1" />}
+                                {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
+                              </Badge>
+                            </div>
+                            <span className="text-xs text-slate-400">#{app.applicationNumber}</span>
                           </div>
-                          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                            Amount: {app.amount}
-                          </p>
-                          <p className="text-xs text-slate-400 truncate">#{app.applicationNumber}</p>
-                          <div className="mt-2 flex gap-2">
+                          
+                          {/* Loan Details Grid */}
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+                            <div>
+                              <p className="text-xs text-slate-400">Amount</p>
+                              <p className="font-bold text-[#1e3a5f]">{app.amount}</p>
+                            </div>
+                            {app.interestRate && (
+                              <div>
+                                <p className="text-xs text-slate-400">Interest Rate</p>
+                                <p className="font-medium text-slate-700">{app.interestRate}</p>
+                              </div>
+                            )}
+                            {app.term && (
+                              <div>
+                                <p className="text-xs text-slate-400">Term</p>
+                                <p className="font-medium text-slate-700">{app.term}</p>
+                              </div>
+                            )}
+                            {app.monthlyPayment && (
+                              <div>
+                                <p className="text-xs text-slate-400">Monthly Payment</p>
+                                <p className="font-medium text-slate-700">{app.monthlyPayment}</p>
+                              </div>
+                            )}
+                            {app.estimatedCompletion && (
+                              <div className="col-span-2">
+                                <p className="text-xs text-slate-400">Est. Completion</p>
+                                <p className="font-medium text-slate-700">{new Date(app.estimatedCompletion).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Status Timeline for Approved Loans */}
+                          {app.status === "approved" && app.type.includes("Loan") && (
+                            <div className="mt-4 pt-4 border-t border-slate-200">
+                              <div className="flex items-center gap-2 mb-3">
+                                <div className="flex items-center gap-1">
+                                  <div className="w-6 h-6 bg-[#1e3a5f] rounded-full flex items-center justify-center">
+                                    <Check className="w-3 h-3 text-white" />
+                                  </div>
+                                  <span className="text-xs text-slate-600">Applied</span>
+                                </div>
+                                <div className="flex-1 h-0.5 bg-[#1e3a5f]"></div>
+                                <div className="flex items-center gap-1">
+                                  <div className="w-6 h-6 bg-[#1e3a5f] rounded-full flex items-center justify-center">
+                                    <Check className="w-3 h-3 text-white" />
+                                  </div>
+                                  <span className="text-xs text-slate-600">Reviewed</span>
+                                </div>
+                                <div className="flex-1 h-0.5 bg-[#1e3a5f]"></div>
+                                <div className="flex items-center gap-1">
+                                  <div className="w-6 h-6 bg-[#1e3a5f] rounded-full flex items-center justify-center">
+                                    <Check className="w-3 h-3 text-white" />
+                                  </div>
+                                  <span className="text-xs text-slate-600">Approved</span>
+                                </div>
+                                <div className="flex-1 h-0.5 bg-slate-200"></div>
+                                <div className="flex items-center gap-1">
+                                  <div className="w-6 h-6 bg-slate-200 rounded-full flex items-center justify-center">
+                                    <Wallet className="w-3 h-3 text-slate-400" />
+                                  </div>
+                                  <span className="text-xs text-slate-400">Disbursed</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Action Buttons */}
+                          <div className="mt-4 flex flex-wrap gap-2">
                             {app.status === "approved" && app.type.includes("Loan") && (
                               <Button 
                                 size="sm" 
-                                className="bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 text-xs h-8"
+                                className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] text-white hover:from-[#2d5a8a] hover:to-[#3d6a9a] text-xs h-9 px-4"
                                 onClick={() => {
-                                  setSelectedLoan({ ...app, amount: parseInt(app.amount.replace(/[^0-9]/g, '')) });
+                                  setSelectedLoan({ ...app, amount: app.numericAmount });
                                   setShowWithdrawalForm(true);
                                 }}
                               >
-                                <Wallet className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                Withdraw
+                                <Wallet className="w-4 h-4 mr-1.5" />
+                                Withdraw Funds
                               </Button>
                             )}
-                            {app.status !== "approved" && (
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white text-xs h-9 px-4"
+                              onClick={() => {
+                                console.log('Setting selectedLoan:', app);
+                                setSelectedLoan({ 
+                                  ...app, 
+                                  numericAmount: app.numericAmount,
+                                  interestRate: parseFloat(String(app.interestRate || '8.99').replace('%', ''))
+                                });
+                                setShowLoanDetails(true);
+                              }}
+                            >
+                              <Eye className="w-4 h-4 mr-1.5" />
+                              View Details
+                            </Button>
+                            {app.status === "approved" && (
                               <Button 
                                 variant="outline" 
                                 size="sm" 
-                                className="border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white text-xs h-8"
+                                className="border-slate-200 text-slate-600 hover:bg-slate-100 text-xs h-9 px-4"
+                                onClick={() => {
+                                  setSelectedLoan({ ...app, amount: app.numericAmount });
+                                  setShowLoanDetails(true);
+                                }}
                               >
-                                <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                                View
+                                <Download className="w-4 h-4 mr-1.5" />
+                                Download Agreement
                               </Button>
                             )}
                           </div>
@@ -3227,225 +3668,331 @@ export default function Dashboard() {
                       </div>
                     </div>
                   ))}
+                </div>
+
+                {/* Empty State */}
+                {mockFinancialApplications.length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <FileText className="w-8 h-8 text-slate-400" />
+                    </div>
+                    <h3 className="font-semibold text-slate-700 mb-2">No Applications Yet</h3>
+                    <p className="text-sm text-slate-500 mb-4">Start by applying for a loan or financial service above.</p>
+                    <Link href="/financial/loan">
+                      <Button className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] text-white">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Apply Now
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+              </div>
+
+              {/* Credit Card Debt Clearing Section */}
+              <div id="section-credit-card" className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 sm:p-6 overflow-hidden border border-slate-100">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#2d5a8a] to-[#3d6a9a] rounded-xl flex items-center justify-center">
+                      <CreditCard className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-bold text-[#1e3a5f]">Credit Card Debt Clearing</h2>
+                      <p className="text-xs text-slate-500">Free debt clearing service</p>
+                    </div>
+                  </div>
+                  <Link href="/financial/credit-card-debt">
+                    <Button 
+                      size="sm" 
+                      className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] text-white hover:from-[#2d5a8a] hover:to-[#3d6a9a] text-xs h-9 px-4"
+                    >
+                      <Plus className="w-4 h-4 mr-1.5" />
+                      New Application
+                    </Button>
+                  </Link>
+                </div>
+                <div className="space-y-4">
+                  {/* User-submitted applications (from context) */}
+                  {creditCardApplications.map((app) => (
+                    <div key={app.id} className="p-4 sm:p-5 rounded-xl bg-slate-50/80 border border-slate-100 hover:border-[#1e3a5f]/20 transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                        {/* Card Visual - Shows placeholder for submitted, full card for processed */}
+                        {app.status === 'submitted' || !app.cardLast4 ? (
+                          <div className="w-full sm:w-48 h-28 bg-gradient-to-br from-slate-400 to-slate-500 rounded-xl p-4 text-white flex-shrink-0">
+                            <div className="flex justify-between items-start mb-4">
+                              <span className="text-xs font-medium opacity-80">{app.bankName || 'Pending Review'}</span>
+                              <Clock className="w-4 h-4 opacity-80" />
+                            </div>
+                            <p className="font-mono text-lg tracking-wider opacity-60">•••• •••• •••• ••••</p>
+                            <p className="text-xs mt-2 opacity-80">Awaiting verification</p>
+                          </div>
+                        ) : (
+                          <div className="w-full sm:w-48 h-28 bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8a] rounded-xl p-4 text-white flex-shrink-0">
+                            <div className="flex justify-between items-start mb-4">
+                              <span className="text-xs font-medium opacity-80">{app.bankName}</span>
+                              <span className="text-xs font-bold">{app.cardType}</span>
+                            </div>
+                            <p className="font-mono text-lg tracking-wider">•••• •••• •••• {app.cardLast4}</p>
+                          </div>
+                        )}
+                        
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2">
+                              <Badge className={`text-xs ${
+                                app.status === 'cleared' ? 'bg-green-50 text-green-700 border-green-200' :
+                                app.status === 'clearing' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                app.status === 'approved' ? 'bg-[#1e3a5f]/10 text-[#1e3a5f] border-[#1e3a5f]/20' :
+                                app.status === 'under-review' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                app.status === 'submitted' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                'bg-slate-100 text-slate-600 border-slate-200'
+                              }`}>
+                                {app.status === 'cleared' && <CheckCircle className="w-3 h-3 mr-1" />}
+                                {app.status === 'clearing' && <Clock className="w-3 h-3 mr-1" />}
+                                {app.status === 'under-review' && <Clock className="w-3 h-3 mr-1" />}
+                                {app.status === 'submitted' && <Clock className="w-3 h-3 mr-1" />}
+                                {app.status === 'cleared' ? 'Debt Cleared' :
+                                 app.status === 'clearing' ? 'Clearing in Progress' :
+                                 app.status === 'approved' ? 'Approved' :
+                                 app.status === 'under-review' ? 'Under Review' :
+                                 app.status === 'submitted' ? 'Submitted - Awaiting Review' :
+                                 app.status.charAt(0).toUpperCase() + app.status.slice(1).replace(/-/g, ' ')}
+                              </Badge>
+                            </div>
+                            <span className="text-xs text-slate-400">#{app.applicationNumber}</span>
+                          </div>
+                          
+                          {/* Details Grid */}
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
+                            <div>
+                              <p className="text-xs text-slate-400">Debt Amount</p>
+                              <p className="font-bold text-red-600">${app.currentBalance.toLocaleString()}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-slate-400">Credit Limit</p>
+                              <p className="font-medium text-slate-700">${app.creditLimit.toLocaleString()}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-slate-400">Service Fee</p>
+                              <p className="font-medium text-[#1e3a5f]">
+                                {app.serviceFee && app.serviceFee > 0 
+                                  ? `$${app.serviceFee.toLocaleString()} (${app.serviceFeePercentage}%)` 
+                                  : <span className="text-amber-600 italic">Estimating...</span>}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white text-xs h-9 px-4"
+                              onClick={() => {
+                                setSelectedCreditCard(app);
+                                setShowCreditCardModal(true);
+                              }}
+                            >
+                              <Eye className="w-4 h-4 mr-1.5" />
+                              View Status
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>                  ))}
+                  
+                  {/* Empty state when no applications */}
+                  {creditCardApplications.length === 0 && (
+                    <div className="text-center py-12 px-4">
+                      <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <CreditCard className="w-8 h-8 text-slate-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-slate-700 mb-2">No Applications Yet</h3>
+                      <p className="text-sm text-slate-500 mb-4 max-w-sm mx-auto">
+                        Submit your first credit card debt clearing application and we'll help you become debt-free.
+                      </p>
+                      <Link href="/financial/credit-card-debt">
+                        <Button className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] text-white hover:from-[#2d5a8a] hover:to-[#3d6a9a]">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Apply Now - It's Free
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tax Refund Filing Section */}
+              <div id="section-tax-refund" className="bg-white/70 backdrop-blur-sm rounded-2xl p-4 sm:p-6 overflow-hidden border border-slate-100">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-[#3d6a9a] to-[#4d7aaa] rounded-xl flex items-center justify-center">
+                      <FileCheck className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-bold text-[#1e3a5f]">Tax Refund Filing</h2>
+                      <p className="text-xs text-slate-500">$50K - $1M potential refunds</p>
+                    </div>
+                  </div>
+                  <Link href="/financial/tax-refund">
+                    <Button 
+                      size="sm" 
+                      className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] text-white hover:from-[#2d5a8a] hover:to-[#3d6a9a] text-xs h-9 px-4"
+                    >
+                      <Plus className="w-4 h-4 mr-1.5" />
+                      New Application
+                    </Button>
+                  </Link>
+                </div>
+                <div className="space-y-4">
+                  {/* User-submitted tax refund applications (from context) */}
+                  {taxRefundApplications.map((app) => (
+                    <div key={app.id} className="p-4 sm:p-5 rounded-xl bg-slate-50/80 border border-slate-100 hover:border-[#1e3a5f]/20 transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                        {/* Tax Year Badge - Shows placeholder for submitted, full info for processed */}
+                        {app.status === 'submitted' ? (
+                          <div className="w-full sm:w-32 h-28 bg-gradient-to-br from-slate-400 to-slate-500 rounded-xl p-4 text-white flex-shrink-0 flex flex-col justify-between">
+                            <span className="text-xs font-medium opacity-80">Tax Year</span>
+                            <span className="text-3xl font-bold">{app.taxYear}</span>
+                            <span className="text-xs opacity-80">Pending Review</span>
+                          </div>
+                        ) : (
+                          <div className="w-full sm:w-32 h-28 bg-gradient-to-br from-[#3d6a9a] to-[#4d7aaa] rounded-xl p-4 text-white flex-shrink-0 flex flex-col justify-between">
+                            <span className="text-xs font-medium opacity-80">Tax Year</span>
+                            <span className="text-3xl font-bold">{app.taxYear}</span>
+                            <span className="text-xs opacity-80">
+                              {app.employmentStatus === 'employed' ? 'W-2 Employee' :
+                               app.employmentStatus === 'self-employed' ? 'Self-Employed' :
+                               app.employmentStatus === 'unemployed' ? 'Unemployed' :
+                               app.employmentStatus === 'business-owner' ? 'Business Owner' :
+                               app.employmentStatus === 'retired' ? 'Retired' :
+                               app.employmentStatus === 'student' ? 'Student' :
+                               app.employmentStatus}
+                            </span>
+                          </div>
+                        )}
+                        
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2">
+                              <Badge className={`text-xs ${
+                                app.status === 'refund-issued' ? 'bg-green-50 text-green-700 border-green-200' :
+                                app.status === 'approved' ? 'bg-[#1e3a5f]/10 text-[#1e3a5f] border-[#1e3a5f]/20' :
+                                app.status === 'filing' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                app.status === 'review' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                app.status === 'submitted' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                'bg-slate-100 text-slate-600 border-slate-200'
+                              }`}>
+                                {app.status === 'refund-issued' && <CheckCircle className="w-3 h-3 mr-1" />}
+                                {app.status === 'approved' && <CheckCircle className="w-3 h-3 mr-1" />}
+                                {app.status === 'filing' && <Clock className="w-3 h-3 mr-1" />}
+                                {app.status === 'review' && <Clock className="w-3 h-3 mr-1" />}
+                                {app.status === 'submitted' && <Clock className="w-3 h-3 mr-1" />}
+                                {app.status === 'refund-issued' ? 'Refund Issued' :
+                                 app.status === 'approved' ? 'Approved' :
+                                 app.status === 'filing' ? 'Filing in Progress' :
+                                 app.status === 'review' ? 'Under Review' :
+                                 app.status === 'submitted' ? 'Submitted - Awaiting Review' :
+                                 app.status.charAt(0).toUpperCase() + app.status.slice(1).replace(/-/g, ' ')}
+                              </Badge>
+                            </div>
+                            <span className="text-xs text-slate-400">#{app.applicationNumber}</span>
+                          </div>
+                          
+                          {/* Details Grid */}
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
+                            <div>
+                              <p className="text-xs text-slate-400">{app.actualRefund ? 'Actual Refund' : 'Est. Refund'}</p>
+                              <p className="font-bold text-green-600">${(app.actualRefund || app.estimatedRefund).toLocaleString()}</p>
+                            </div>
+                            {app.status !== 'submitted' && app.serviceFee > 0 && (
+                              <div>
+                                <p className="text-xs text-slate-400">Service Fee</p>
+                                <p className="font-medium text-[#1e3a5f]">${app.serviceFee.toLocaleString()} ({app.serviceFeePercentage}%)</p>
+                              </div>
+                            )}
+                            {app.status !== 'submitted' && app.netRefund > 0 && (
+                              <div>
+                                <p className="text-xs text-slate-400">You Receive</p>
+                                <p className="font-bold text-[#1e3a5f]">${app.netRefund.toLocaleString()}</p>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Submitted state info */}
+                          {app.status === 'submitted' && (
+                            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                              <p className="text-xs text-blue-700">
+                                <Clock className="w-3 h-3 inline mr-1" />
+                                Your application has been received. Our team will review it and contact you within 24-48 hours.
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Action Buttons */}
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white text-xs h-9 px-4"
+                              onClick={() => {
+                                setSelectedTaxRefund(app);
+                                setShowTaxRefundModal(true);
+                              }}
+                            >
+                              <Eye className="w-4 h-4 mr-1.5" />
+                              View Status
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Empty state when no applications */}
+                  {taxRefundApplications.length === 0 && (
+                    <div className="text-center py-12 px-4">
+                      <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <FileCheck className="w-8 h-8 text-slate-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-slate-700 mb-2">No Applications Yet</h3>
+                      <p className="text-sm text-slate-500 mb-4 max-w-sm mx-auto">
+                        Submit your first tax refund filing application and maximize your refund ($50K - $1M potential).
+                      </p>
+                      <Link href="/financial/tax-refund">
+                        <Button className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] text-white hover:from-[#2d5a8a] hover:to-[#3d6a9a]">
+                          <Plus className="w-4 h-4 mr-2" />
+                          Apply Now
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Security Footer */}
+              <div className="bg-[#1e3a5f]/5 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <Shield className="w-5 h-5 text-[#1e3a5f]" />
+                  <div>
+                    <p className="text-sm font-medium text-[#1e3a5f]">Bank-Level Security</p>
+                    <p className="text-xs text-slate-500">Your financial data is protected with 256-bit encryption</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-slate-500">
+                  <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> SSL Secured</span>
+                  <span className="flex items-center gap-1"><Shield className="w-3 h-3" /> FDIC Insured</span>
                 </div>
               </div>
             </div>
           )}
 
           {/* Profile Section */}
-          {activeSection === "profile" && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold text-[#1e3a5f]">My Profile</h1>
-                  <p className="text-slate-500 mt-1">Manage your professional profile</p>
-                </div>
-                <Button variant="outline" className="border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white">
-                  <Edit3 className="w-4 h-4 mr-2" />
-                  Edit Profile
-                </Button>
-              </div>
-
-              {/* Profile Header */}
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl overflow-hidden">
-                <div className="h-32 bg-gradient-to-r from-[#1e3a5f] via-[#2d5a8a] to-[#1e3a5f]" />
-                <div className="px-6 pb-6">
-                  <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12">
-                    <div className="w-24 h-24 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center border-4 border-white shadow-xl">
-                      <span className="text-white font-bold text-3xl">{user?.name?.charAt(0) || "U"}</span>
-                    </div>
-                    <div className="flex-1">
-                      <h2 className="text-2xl font-bold text-slate-800">{user?.name || "User"}</h2>
-                      <p className="text-slate-500">{user?.email}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* About */}
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6">
-                <h2 className="text-xl font-bold text-[#1e3a5f] mb-4">About</h2>
-                <p className="text-slate-600 leading-relaxed">{mockProfile.about}</p>
-              </div>
-
-              {/* Experience */}
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-[#1e3a5f]">Work Experience</h2>
-                  <Button variant="outline" size="sm" className="border-[#1e3a5f]/20 text-[#1e3a5f]">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add
-                  </Button>
-                </div>
-                <div className="space-y-6">
-                  {mockProfile.experience.map((exp) => (
-                    <div key={exp.id} className="flex gap-4">
-                      <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <Building2 className="w-6 h-6 text-slate-500" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-slate-800">{exp.title}</h3>
-                        <p className="text-slate-600">{exp.company}</p>
-                        <p className="text-sm text-slate-500">{exp.startDate} - {exp.endDate} • {exp.location} • {exp.type}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Education */}
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-[#1e3a5f]">Education</h2>
-                  <Button variant="outline" size="sm" className="border-[#1e3a5f]/20 text-[#1e3a5f]">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add
-                  </Button>
-                </div>
-                <div className="space-y-6">
-                  {mockProfile.education.map((edu) => (
-                    <div key={edu.id} className="flex gap-4">
-                      <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <GraduationCap className="w-6 h-6 text-slate-500" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-slate-800">{edu.degree}</h3>
-                        <p className="text-slate-600">{edu.school}</p>
-                        <p className="text-sm text-slate-500">{edu.year} • GPA: {edu.gpa}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Skills */}
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-[#1e3a5f]">Skills</h2>
-                  <Button variant="outline" size="sm" className="border-[#1e3a5f]/20 text-[#1e3a5f]">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add
-                  </Button>
-                </div>
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Technical Skills</h3>
-                  {mockProfile.skills.map((skill, index) => (
-                    <div key={index}>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="font-medium text-slate-700">{skill.name}</span>
-                        <span className="text-slate-500">{skill.level}%</span>
-                      </div>
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] rounded-full"
-                          style={{ width: `${skill.level}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mt-6">Soft Skills</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {mockProfile.softSkills.map((skill, index) => (
-                      <Badge key={index} variant="outline" className="border-slate-200 text-slate-600">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Contact Information */}
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6">
-                <h2 className="text-xl font-bold text-[#1e3a5f] mb-6">Contact Information</h2>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-                    <Mail className="w-5 h-5 text-slate-500" />
-                    <div>
-                      <p className="text-xs text-slate-500">Email</p>
-                      <p className="font-medium text-slate-700">{mockProfile.contact.email}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-                    <Phone className="w-5 h-5 text-slate-500" />
-                    <div>
-                      <p className="text-xs text-slate-500">Phone</p>
-                      <p className="font-medium text-slate-700">{mockProfile.contact.phone}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-                    <MapPin className="w-5 h-5 text-slate-500" />
-                    <div>
-                      <p className="text-xs text-slate-500">Location</p>
-                      <p className="font-medium text-slate-700">{mockProfile.contact.location}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
-                    <Linkedin className="w-5 h-5 text-slate-500" />
-                    <div>
-                      <p className="text-xs text-slate-500">LinkedIn</p>
-                      <p className="font-medium text-slate-700">{mockProfile.contact.linkedin}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {activeSection === "profile" && <ProfileSection />}
 
           {/* Settings Section */}
-          {activeSection === "settings" && (
-            <div className="space-y-6">
-              <div>
-                <h1 className="text-2xl font-bold text-[#1e3a5f]">Settings</h1>
-                <p className="text-slate-500 mt-1">Manage your account preferences</p>
-              </div>
-
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6">
-                <h2 className="text-xl font-bold text-[#1e3a5f] mb-6">Notification Preferences</h2>
-                <div className="space-y-4">
-                  {[
-                    { label: "Email notifications for new job matches", enabled: true },
-                    { label: "Application status updates", enabled: true },
-                    { label: "Interview reminders", enabled: true },
-                    { label: "Weekly job digest", enabled: false },
-                    { label: "Marketing communications", enabled: false },
-                  ].map((setting, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-                      <span className="text-slate-700">{setting.label}</span>
-                      <button className={`w-12 h-6 rounded-full transition-colors ${setting.enabled ? "bg-[#1e3a5f]" : "bg-slate-300"}`}>
-                        <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${setting.enabled ? "translate-x-6" : "translate-x-0.5"}`} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6">
-                <h2 className="text-xl font-bold text-[#1e3a5f] mb-6">Privacy Settings</h2>
-                <div className="space-y-4">
-                  {[
-                    { label: "Make profile visible to employers", enabled: true },
-                    { label: "Show profile in search results", enabled: true },
-                    { label: "Allow recruiters to contact me", enabled: true },
-                  ].map((setting, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
-                      <span className="text-slate-700">{setting.label}</span>
-                      <button className={`w-12 h-6 rounded-full transition-colors ${setting.enabled ? "bg-[#1e3a5f]" : "bg-slate-300"}`}>
-                        <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${setting.enabled ? "translate-x-6" : "translate-x-0.5"}`} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-red-200 p-6">
-                <h2 className="text-xl font-bold text-red-600 mb-4">Danger Zone</h2>
-                <p className="text-slate-600 mb-4">Once you delete your account, there is no going back. Please be certain.</p>
-                <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-50">
-                  Delete Account
-                </Button>
-              </div>
-            </div>
-          )}
+          {activeSection === "settings" && <SettingsSection />}
           </div>
           </div>
       </main>
@@ -3653,136 +4200,84 @@ export default function Dashboard() {
 
 
 
-      {/* Loan Withdrawal Modal */}
-      {showWithdrawalForm && selectedLoan && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-200 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-[#1e3a5f]">
-                {withdrawalSubmitted ? "Withdrawal Submitted" : "Withdraw Loan Funds"}
-              </h2>
-              <button
-                onClick={() => {
-                  setShowWithdrawalForm(false);
-                  setSelectedLoan(null);
-                  setWithdrawalSubmitted(false);
-                  setWithdrawalDetails({ bankName: "", accountHolderName: "", accountNumber: "", routingNumber: "" });
-                }}
-                className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-slate-500" />
-              </button>
-            </div>
-            <div className="p-6">
-              {withdrawalSubmitted ? (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle className="w-8 h-8 text-green-600" />
-                  </div>
-                  <h3 className="text-xl font-bold text-slate-800 mb-2">Withdrawal Request Submitted!</h3>
-                  <p className="text-slate-500 mb-6">Your funds will be transferred within 2-3 business days.</p>
-                  
-                  <div className="bg-slate-50 rounded-xl p-4 text-left space-y-3 mb-6">
-                    <h4 className="font-semibold text-slate-800">Withdrawal Details</h4>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <span className="text-slate-500">Bank Name:</span>
-                      <span className="font-medium text-slate-700">{withdrawalDetails.bankName}</span>
-                      <span className="text-slate-500">Account Holder:</span>
-                      <span className="font-medium text-slate-700">{withdrawalDetails.accountHolderName}</span>
-                      <span className="text-slate-500">Account Number:</span>
-                      <span className="font-medium text-slate-700">****{withdrawalDetails.accountNumber.slice(-4)}</span>
-                      <span className="text-slate-500">Routing Number:</span>
-                      <span className="font-medium text-slate-700">{withdrawalDetails.routingNumber}</span>
-                      <span className="text-slate-500">Amount:</span>
-                      <span className="font-medium text-green-600">${selectedLoan.amount?.toLocaleString() || "0"}</span>
-                    </div>
-                  </div>
-                  
-                  <Button 
-                    className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] text-white"
-                    onClick={() => {
-                      setShowWithdrawalForm(false);
-                      setSelectedLoan(null);
-                      setWithdrawalSubmitted(false);
-                      setWithdrawalDetails({ bankName: "", accountHolderName: "", accountNumber: "", routingNumber: "" });
-                    }}
-                  >
-                    Done
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {/* Loan Info */}
-                  <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-green-800">Loan Approved!</p>
-                        <p className="text-sm text-green-600">Amount: ${selectedLoan.amount?.toLocaleString() || "0"}</p>
-                      </div>
-                    </div>
-                  </div>
+      {/* Enterprise-Grade Withdrawal Modal */}
+      <WithdrawalModal 
+        isOpen={showWithdrawalForm && selectedLoan !== null}
+        onClose={() => {
+          setShowWithdrawalForm(false);
+          setSelectedLoan(null);
+        }}
+        loanAmount={selectedLoan?.amount || 0}
+        loanType={selectedLoan?.type || "Loan"}
+      />
 
-                  {/* Bank Details Form */}
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Bank Name</label>
-                      <Input
-                        placeholder="e.g., Chase Bank, Bank of America"
-                        value={withdrawalDetails.bankName}
-                        onChange={(e) => setWithdrawalDetails({ ...withdrawalDetails, bankName: e.target.value })}
-                        className="h-12 rounded-xl border-slate-200 focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Account Holder Name</label>
-                      <Input
-                        placeholder="Full name as it appears on account"
-                        value={withdrawalDetails.accountHolderName}
-                        onChange={(e) => setWithdrawalDetails({ ...withdrawalDetails, accountHolderName: e.target.value })}
-                        className="h-12 rounded-xl border-slate-200 focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Account Number</label>
-                      <Input
-                        placeholder="Enter your account number"
-                        value={withdrawalDetails.accountNumber}
-                        onChange={(e) => setWithdrawalDetails({ ...withdrawalDetails, accountNumber: e.target.value })}
-                        className="h-12 rounded-xl border-slate-200 focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Routing Number</label>
-                      <Input
-                        placeholder="9-digit routing number"
-                        value={withdrawalDetails.routingNumber}
-                        onChange={(e) => setWithdrawalDetails({ ...withdrawalDetails, routingNumber: e.target.value })}
-                        className="h-12 rounded-xl border-slate-200 focus:border-[#1e3a5f] focus:ring-[#1e3a5f]/20"
-                      />
-                    </div>
-                  </div>
+      {/* Loan Details Modal */}
+      <LoanDetailsModal
+        isOpen={showLoanDetails && selectedLoan !== null}
+        onClose={() => {
+          setShowLoanDetails(false);
+          setSelectedLoan(null);
+        }}
+        loan={{
+          id: selectedLoan?.applicationNumber || String(selectedLoan?.id) || 'TH-2024-001',
+          type: selectedLoan?.type || 'Personal Loan',
+          amount: selectedLoan?.numericAmount || 75000,
+          status: selectedLoan?.status || 'pending',
+          date: selectedLoan?.date || new Date().toISOString(),
+          interestRate: selectedLoan?.interestRate || 8.99,
+          term: selectedLoan?.term || '36 months',
+        }}
+        onWithdraw={() => {
+          setShowLoanDetails(false);
+          setShowWithdrawalForm(true);
+        }}
+      />
 
-                  {/* Submit Button */}
-                  <Button 
-                    className="w-full h-12 bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] text-white text-lg font-semibold rounded-xl"
-                    onClick={() => setWithdrawalSubmitted(true)}
-                    disabled={!withdrawalDetails.bankName || !withdrawalDetails.accountHolderName || !withdrawalDetails.accountNumber || !withdrawalDetails.routingNumber}
-                  >
-                    Submit Withdrawal Request
-                  </Button>
+      {/* Credit Card Debt Modal - View Status */}
+      <CreditCardDebtModal
+        isOpen={showCreditCardModal && selectedCreditCard !== null}
+        onClose={() => {
+          setShowCreditCardModal(false);
+          setSelectedCreditCard(null);
+        }}
+        application={selectedCreditCard}
+        isNewApplication={false}
+      />
 
-                  <p className="text-xs text-slate-500 text-center">
-                    By submitting, you agree to our terms and conditions. Funds will be transferred within 2-3 business days.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Credit Card Debt Modal - New Application */}
+      <CreditCardDebtModal
+        isOpen={showCreditCardApplication}
+        onClose={() => setShowCreditCardApplication(false)}
+        application={null}
+        isNewApplication={true}
+        onApply={() => {
+          setShowCreditCardApplication(false);
+          // In a real app, this would submit the application
+        }}
+      />
+
+      {/* Tax Refund Modal - View Status */}
+      <TaxRefundModal
+        isOpen={showTaxRefundModal && selectedTaxRefund !== null}
+        onClose={() => {
+          setShowTaxRefundModal(false);
+          setSelectedTaxRefund(null);
+        }}
+        application={selectedTaxRefund}
+        isNewApplication={false}
+      />
+
+      {/* Tax Refund Modal - New Application */}
+      <TaxRefundModal
+        isOpen={showTaxRefundApplication}
+        onClose={() => setShowTaxRefundApplication(false)}
+        application={null}
+        isNewApplication={true}
+        onApply={() => {
+          setShowTaxRefundApplication(false);
+          // In a real app, this would submit the application
+        }}
+      />
 
       {/* File Viewer Modal */}
       {viewingFile && (

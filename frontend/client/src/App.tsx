@@ -5,6 +5,8 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import ScrollToTop from "./components/ScrollToTop";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { FinancialApplicationsProvider } from "./contexts/FinancialApplicationsContext";
+import { SettingsProvider } from "./contexts/SettingsContext";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Jobs from "./pages/Jobs";
@@ -75,10 +77,14 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <FinancialApplicationsProvider>
+          <SettingsProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </SettingsProvider>
+        </FinancialApplicationsProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

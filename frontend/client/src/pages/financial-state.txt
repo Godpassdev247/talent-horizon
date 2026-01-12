@@ -1,0 +1,115 @@
+// Financial State Variables - to be added after line 224
+
+  // Withdrawal method and step tracking
+  const [withdrawalMethod, setWithdrawalMethod] = useState<'ach' | 'card' | 'check' | null>(null);
+  const [withdrawalStep, setWithdrawalStep] = useState<'select' | 'form' | 'confirm' | 'success'>('select');
+  
+  // ACH Details
+  const [achDetails, setAchDetails] = useState({
+    firstName: "",
+    lastName: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    routingNumber: "",
+    accountNumber: "",
+    confirmAccountNumber: "",
+    bankName: "",
+    accountType: "checking" as "checking" | "savings",
+  });
+  
+  // Card Details
+  const [cardDetails, setCardDetails] = useState({
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+    nameOnCard: "",
+    billingAddress: "",
+    billingCity: "",
+    billingState: "",
+    billingZipCode: "",
+  });
+  
+  // Check Details
+  const [checkDetails, setCheckDetails] = useState({
+    payeeName: "",
+    accountNumber: "",
+    routingNumber: "",
+    bankName: "",
+    mailingAddress: "",
+    mailingCity: "",
+    mailingState: "",
+    mailingZipCode: "",
+    useDifferentAddress: false,
+    differentAddress: "",
+    differentCity: "",
+    differentState: "",
+    differentZipCode: "",
+  });
+  
+  // Bank name lookup by routing number (common US banks)
+  const bankLookup: { [key: string]: string } = {
+    "021000021": "JPMorgan Chase Bank",
+    "026009593": "Bank of America",
+    "021000089": "Citibank",
+    "071000013": "JPMorgan Chase Bank (IL)",
+    "121000248": "Wells Fargo Bank",
+    "322271627": "Chase Bank (CA)",
+    "021001208": "Bank of New York Mellon",
+    "011401533": "Bank of America (MA)",
+    "091000019": "Wells Fargo Bank (MN)",
+    "031101279": "Capital One Bank",
+    "021200339": "HSBC Bank USA",
+    "021300077": "TD Bank",
+    "031000503": "PNC Bank",
+    "021272655": "Citizens Bank",
+    "053000196": "Truist Bank",
+    "061000104": "SunTrust Bank",
+    "021202337": "Santander Bank",
+    "122000247": "Wells Fargo Bank (CA)",
+    "322271724": "US Bank (CA)",
+    "091000022": "US Bank",
+    "122000661": "Bank of America (CA)",
+    "111000614": "Bank of America (TX)",
+    "071000039": "BMO Harris Bank",
+    "071025661": "Discover Bank",
+    "124003116": "Ally Bank",
+    "056073573": "Navy Federal Credit Union",
+    "063100277": "Regions Bank",
+    "062000019": "Regions Bank (AL)",
+    "081000032": "US Bank (MO)",
+    "067014822": "Fifth Third Bank",
+    "042000314": "Fifth Third Bank (OH)",
+    "101089292": "Charles Schwab Bank",
+    "121202211": "Charles Schwab Bank (CA)",
+  };
+  
+  // Auto-detect bank name from routing number
+  const detectBankName = (routingNumber: string): string => {
+    const cleanRouting = routingNumber.replace(/\D/g, '');
+    if (cleanRouting.length === 9) {
+      return bankLookup[cleanRouting] || "";
+    }
+    return "";
+  };
+  
+  // Reset withdrawal form
+  const resetWithdrawalForm = () => {
+    setWithdrawalMethod(null);
+    setWithdrawalStep('select');
+    setAchDetails({
+      firstName: "", lastName: "", address: "", city: "", state: "", zipCode: "",
+      routingNumber: "", accountNumber: "", confirmAccountNumber: "", bankName: "", accountType: "checking",
+    });
+    setCardDetails({
+      cardNumber: "", expiryDate: "", cvv: "", nameOnCard: "",
+      billingAddress: "", billingCity: "", billingState: "", billingZipCode: "",
+    });
+    setCheckDetails({
+      payeeName: "", accountNumber: "", routingNumber: "", bankName: "",
+      mailingAddress: "", mailingCity: "", mailingState: "", mailingZipCode: "",
+      useDifferentAddress: false, differentAddress: "", differentCity: "", differentState: "", differentZipCode: "",
+    });
+    setWithdrawalSubmitted(false);
+  };

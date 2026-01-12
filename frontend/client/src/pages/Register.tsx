@@ -42,7 +42,7 @@ export default function Register() {
     setIsLoading(true);
     
     try {
-      const response = await fetch('https://8000-igaq82edlqb5u4iaikqp1-f81208bb.us2.manus.computer/api/auth/register/', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,8 +50,7 @@ export default function Register() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          first_name: formData.firstName,
-          last_name: formData.lastName,
+          name: `${formData.firstName} ${formData.lastName}`,
         }),
       });
       
