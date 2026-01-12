@@ -22,14 +22,14 @@ export interface ProfileData {
   // Professional Overview
   overview: {
     summary: string;
-    hourlyRate: number;
+    expectedSalary: number;
     availability: 'full-time' | 'part-time' | 'not-available' | 'open-to-offers';
-    hoursPerWeek: number;
+    yearsOfExperience: number;
     responseTime: string;
-    totalEarnings: number;
-    totalJobs: number;
-    totalHours: number;
-    successRate: number;
+    projectsCompleted: number;
+    certificationsCount: number;
+    endorsementsCount: number;
+    profileStrength: number;
   };
   
   // Location & Timezone
@@ -242,14 +242,14 @@ Key Achievements:
 • Reduced application load time by 60% through optimization
 • Architected microservices handling 10K+ requests/second
 • Mentored 15+ junior developers across multiple teams`,
-    hourlyRate: 125,
+    expectedSalary: 180000,
     availability: 'open-to-offers',
-    hoursPerWeek: 40,
+    yearsOfExperience: 8,
     responseTime: "Within a few hours",
-    totalEarnings: 285000,
-    totalJobs: 47,
-    totalHours: 3200,
-    successRate: 98,
+    projectsCompleted: 47,
+    certificationsCount: 4,
+    endorsementsCount: 156,
+    profileStrength: 92,
   },
   
   location: {

@@ -237,16 +237,16 @@ interface EditSummaryModalProps {
 export const EditSummaryModal = ({ isOpen, onClose, overview, onSave }: EditSummaryModalProps) => {
   const [formData, setFormData] = useState({
     summary: overview.summary,
-    hourlyRate: overview.hourlyRate,
-    hoursPerWeek: overview.hoursPerWeek,
+    expectedSalary: overview.expectedSalary,
+    yearsOfExperience: overview.yearsOfExperience,
     availability: overview.availability,
   });
 
   useEffect(() => {
     setFormData({
       summary: overview.summary,
-      hourlyRate: overview.hourlyRate,
-      hoursPerWeek: overview.hoursPerWeek,
+      expectedSalary: overview.expectedSalary,
+      yearsOfExperience: overview.yearsOfExperience,
       availability: overview.availability,
     });
   }, [overview, isOpen]);
@@ -269,20 +269,20 @@ export const EditSummaryModal = ({ isOpen, onClose, overview, onSave }: EditSumm
           />
         </FormField>
         <div className="grid grid-cols-3 gap-4">
-          <FormField label="Hourly Rate ($)">
+          <FormField label="Expected Salary ($)">
             <Input
               type="number"
-              value={formData.hourlyRate}
-              onChange={(e) => setFormData({ ...formData, hourlyRate: Number(e.target.value) })}
-              placeholder="125"
+              value={formData.expectedSalary}
+              onChange={(e) => setFormData({ ...formData, expectedSalary: Number(e.target.value) })}
+              placeholder="180000"
             />
           </FormField>
-          <FormField label="Hours/Week">
+          <FormField label="Years of Experience">
             <Input
               type="number"
-              value={formData.hoursPerWeek}
-              onChange={(e) => setFormData({ ...formData, hoursPerWeek: Number(e.target.value) })}
-              placeholder="40"
+              value={formData.yearsOfExperience}
+              onChange={(e) => setFormData({ ...formData, yearsOfExperience: Number(e.target.value) })}
+              placeholder="8"
             />
           </FormField>
           <FormField label="Availability">

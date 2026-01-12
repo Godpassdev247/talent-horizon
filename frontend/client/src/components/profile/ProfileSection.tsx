@@ -175,32 +175,32 @@ const ProfileHeader = ({
         </div>
         
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mt-6 pt-6 border-t border-slate-100">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-6 pt-6 border-t border-slate-100">
           <div className="text-center">
-            <p className="text-2xl font-bold text-[#1e3a5f]">{formatCurrency(profile.overview.totalEarnings)}</p>
-            <p className="text-xs text-slate-500">Total Earned</p>
+            <p className="text-2xl font-bold text-[#1e3a5f]">{profile.overview.yearsOfExperience}+</p>
+            <p className="text-xs text-slate-500">Years Experience</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-[#1e3a5f]">{profile.overview.totalJobs}</p>
-            <p className="text-xs text-slate-500">Jobs Completed</p>
+            <p className="text-2xl font-bold text-[#1e3a5f]">{profile.overview.projectsCompleted}</p>
+            <p className="text-xs text-slate-500">Projects Completed</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-[#1e3a5f]">{profile.overview.totalHours.toLocaleString()}</p>
-            <p className="text-xs text-slate-500">Hours Worked</p>
+            <p className="text-2xl font-bold text-[#1e3a5f]">{profile.overview.certificationsCount}</p>
+            <p className="text-xs text-slate-500">Certifications</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-emerald-600">{profile.overview.successRate}%</p>
-            <p className="text-xs text-slate-500">Job Success</p>
+            <p className="text-2xl font-bold text-[#1e3a5f]">{profile.overview.endorsementsCount}</p>
+            <p className="text-xs text-slate-500">Endorsements</p>
           </div>
           <div className="text-center">
-            <p className="text-2xl font-bold text-[#1e3a5f]">{formatCurrency(profile.overview.hourlyRate)}/hr</p>
-            <p className="text-xs text-slate-500">Hourly Rate</p>
+            <p className="text-2xl font-bold text-emerald-600">{profile.overview.profileStrength}%</p>
+            <p className="text-xs text-slate-500">Profile Strength</p>
           </div>
           <div className="text-center">
             <div className="flex items-center justify-center gap-1">
               <StarRating rating={5} size="md" />
             </div>
-            <p className="text-xs text-slate-500 mt-1">5.0 (47 reviews)</p>
+            <p className="text-xs text-slate-500 mt-1">5.0 ({profile.testimonials?.length || 0} reviews)</p>
           </div>
         </div>
       </div>
@@ -245,15 +245,15 @@ const ProfileOverview = ({
         )}
       </button>
       
-      {/* Availability & Rate */}
+      {/* Professional Info */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center">
-            <Clock className="w-5 h-5 text-emerald-600" />
+            <Briefcase className="w-5 h-5 text-emerald-600" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-800">{profile.overview.hoursPerWeek} hrs/week</p>
-            <p className="text-xs text-slate-500">Availability</p>
+            <p className="text-sm font-medium text-slate-800">{profile.overview.yearsOfExperience}+ Years</p>
+            <p className="text-xs text-slate-500">Experience</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -281,7 +281,7 @@ const ProfileOverview = ({
             <Sparkles className="w-5 h-5 text-orange-600" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-800">Open To-Offers</p>
+            <p className="text-sm font-medium text-slate-800">Open to Offers</p>
             <p className="text-xs text-slate-500">Status</p>
           </div>
         </div>
@@ -733,7 +733,7 @@ const WorkHistorySection = ({ profile }: { profile: ProfileData }) => {
         <div>
           <h2 className="text-xl font-bold text-[#1e3a5f]">Work History & Reviews</h2>
           <p className="text-sm text-slate-500 mt-1">
-            {profile.workHistory.length} completed jobs • {formatCurrency(profile.overview.totalEarnings)} earned
+            {profile.workHistory.length} completed projects • {profile.overview.endorsementsCount} endorsements
           </p>
         </div>
       </div>
