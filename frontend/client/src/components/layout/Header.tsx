@@ -113,7 +113,7 @@ export default function Header() {
                 transition={{ duration: 0.2 }}
               >
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden">
-                  <img src="/sidebar-logo.png" alt="Talent Horizon" className="w-9 h-9 object-contain" />
+                  <img src="/logo-header.png" alt="Talent Horizon" className="w-full h-full object-contain rounded-lg" />
                 </div>
                 <div className="flex flex-col">
                   <span className="font-display font-bold text-xl text-navy leading-tight">

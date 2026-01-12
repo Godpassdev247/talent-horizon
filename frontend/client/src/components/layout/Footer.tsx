@@ -90,7 +90,7 @@ export default function Footer() {
             <Link href="/">
               <div className="flex items-center gap-3 mb-6 cursor-pointer">
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center overflow-hidden bg-white">
-                  <img src="/sidebar-logo.png" alt="Talent Horizon" className="w-9 h-9 object-contain" />
+                  <img src="/logo-header.png" alt="Talent Horizon" className="w-full h-full object-contain rounded-lg" />
                 </div>
                 <span className="font-display font-bold text-xl">
                   Talent<span className="text-orange">Horizon</span>
