@@ -32,6 +32,8 @@ import {
   PreferencesModal,
   SuccessToast
 } from "./ProfileModals";
+import { ProfilePictureUpload } from "./ProfilePictureUpload";
+import { useProfile } from "@/contexts/ProfileContext";
 
 // Helper function to format currency
 const formatCurrency = (amount: number) => {
@@ -83,10 +85,14 @@ const StarRating = ({ rating, size = "sm" }: { rating: number; size?: "sm" | "md
 // Profile Header Component
 const ProfileHeader = ({ 
   profile, 
-  onEditProfile 
+  onEditProfile,
+  onUploadPicture,
+  onRemovePicture
 }: { 
   profile: ProfileData; 
   onEditProfile: () => void;
+  onUploadPicture: (imageData: string) => void;
+  onRemovePicture: () => void;
 }) => {
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200">
@@ -100,18 +106,17 @@ const ProfileHeader = ({
       {/* Profile Info */}
       <div className="px-6 pb-6">
         <div className="flex flex-col lg:flex-row lg:items-end gap-4 -mt-16">
-          {/* Avatar */}
+          {/* Avatar with Upload */}
           <div className="relative">
-            <div className="w-32 h-32 bg-gradient-to-br from-orange-400 to-orange-600 rounded-2xl flex items-center justify-center border-4 border-white shadow-xl">
-              <span className="text-white font-bold text-4xl">
-                {profile.firstName.charAt(0)}{profile.lastName.charAt(0)}
-              </span>
-            </div>
-            <button className="absolute bottom-2 right-2 bg-white rounded-full p-1.5 shadow-lg border border-slate-200 hover:bg-slate-50">
-              <Camera className="w-4 h-4 text-slate-600" />
-            </button>
+            <ProfilePictureUpload
+              currentImage={profile.profilePicture}
+              initials={`${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`}
+              onUpload={onUploadPicture}
+              onRemove={onRemovePicture}
+              size="lg"
+            />
             {profile.verified && (
-              <div className="absolute -top-1 -right-1 bg-blue-500 rounded-full p-1">
+              <div className="absolute -top-1 -right-1 bg-blue-500 rounded-full p-1 z-10">
                 <BadgeCheck className="w-4 h-4 text-white" />
               </div>
             )}
@@ -1143,6 +1148,23 @@ export default function ProfileSection() {
     showToast('Preferences updated successfully');
   };
   
+  // Profile picture handlers
+  const handleUploadPicture = (imageData: string) => {
+    setProfile(prev => ({
+      ...prev,
+      profilePicture: imageData
+    }));
+    showToast('Profile picture updated successfully');
+  };
+  
+  const handleRemovePicture = () => {
+    setProfile(prev => ({
+      ...prev,
+      profilePicture: null
+    }));
+    showToast('Profile picture removed');
+  };
+  
   // Skill handlers
   const handleSaveSkill = (skill: ProfileData['skills'][0]) => {
     if (editingSkill) {
@@ -1336,7 +1358,9 @@ export default function ProfileSection() {
       {/* Profile Header */}
       <ProfileHeader 
         profile={profile} 
-        onEditProfile={() => setEditProfileOpen(true)} 
+        onEditProfile={() => setEditProfileOpen(true)}
+        onUploadPicture={handleUploadPicture}
+        onRemovePicture={handleRemovePicture}
       />
       
       {/* Main Content */}

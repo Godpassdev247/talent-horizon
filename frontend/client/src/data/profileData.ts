@@ -11,6 +11,7 @@ export interface ProfileData {
   title: string;
   tagline: string;
   avatar: string;
+  profilePicture: string | null;
   coverImage: string;
   verified: boolean;
   topRated: boolean;
@@ -223,6 +224,7 @@ export const mockProfileData: ProfileData = {
   title: "Senior Full-Stack Developer",
   tagline: "Building scalable web applications with modern technologies | 8+ years experience",
   avatar: "",
+  profilePicture: null,
   coverImage: "",
   verified: true,
   topRated: true,

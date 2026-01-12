@@ -1036,30 +1036,37 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar - Professional Clean Design */}
       <aside className={`
-        fixed lg:fixed top-0 left-0 h-full bg-white z-50
+        fixed lg:fixed top-0 left-0 h-full z-50
         transform transition-all duration-300 ease-in-out
         ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         ${isDesktopSidebarCollapsed ? "lg:w-20" : "w-72"}
-        flex flex-col shadow-xl border-r border-slate-200
-      `}>
+        flex flex-col bg-white border-r border-slate-200
+      `}
+      style={{
+        boxShadow: '0 0 40px rgba(30, 58, 95, 0.08)'
+      }}>
         {/* Desktop Collapse Toggle Button */}
         <button
           onClick={() => setIsDesktopSidebarCollapsed(!isDesktopSidebarCollapsed)}
-          className="hidden lg:flex absolute -right-3 top-20 w-6 h-6 bg-white rounded-full shadow-lg items-center justify-center hover:bg-gray-100 transition-colors z-50 border border-gray-200"
+          className="hidden lg:flex absolute -right-3 top-20 w-7 h-7 bg-white rounded-full shadow-lg items-center justify-center hover:bg-slate-50 transition-all z-50 border border-slate-200 hover:border-slate-300"
           title={isDesktopSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <ChevronLeft className={`w-4 h-4 text-[#1e3a5f] transition-transform duration-300 ${isDesktopSidebarCollapsed ? "rotate-180" : ""}`} />
         </button>
-        {/* Logo */}
-        <div className={`p-5 lg:p-6 border-b border-slate-200 flex items-center ${isDesktopSidebarCollapsed ? "lg:justify-center" : "justify-between"}`}>
+        
+        {/* Logo Section */}
+        <div className={`p-5 lg:p-6 border-b border-slate-100 flex items-center ${isDesktopSidebarCollapsed ? "lg:justify-center" : "justify-between"}`}>
           <Link href="/">
-            <div className="flex items-center gap-3 cursor-pointer">
-              <div className="w-11 h-11 bg-[#1e3a5f] rounded-xl flex items-center justify-center flex-shrink-0">
+            <div className="flex items-center gap-3 cursor-pointer group">
+              <div className="w-11 h-11 bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8a] rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#1e3a5f]/20 group-hover:shadow-xl group-hover:shadow-[#1e3a5f]/30 transition-all duration-300">
                 <span className="text-white font-bold text-xl">T</span>
               </div>
-              <span className={`font-bold text-[#1e3a5f] text-xl tracking-tight transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>TalentHorizon</span>
+              <div className={`transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>
+                <span className="font-bold text-[#1e3a5f] text-xl tracking-tight">TalentHorizon</span>
+                <p className="text-[10px] text-slate-400 font-medium tracking-wider uppercase">Professional Network</p>
+              </div>
             </div>
           </Link>
           <button
@@ -1070,37 +1077,44 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* User Info Card */}
-        <div className={`p-5 border-b border-slate-200 ${isDesktopSidebarCollapsed ? "lg:px-3" : ""}`}>
+        {/* User Info Card - Enhanced */}
+        <div className={`p-5 border-b border-slate-100 ${isDesktopSidebarCollapsed ? "lg:px-3" : ""}`}>
           <div className={`flex items-center gap-3 ${isDesktopSidebarCollapsed ? "lg:justify-center" : ""}`}>
-            <div className="w-12 h-12 bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8a] rounded-xl flex items-center justify-center flex-shrink-0 shadow-md">
-              <span className="text-white font-bold text-lg">
-                {user?.name?.charAt(0) || "U"}
-              </span>
+            <div className="relative">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#1e3a5f] to-[#2d5a8a] rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ring-2 ring-white">
+                <span className="text-white font-bold text-lg">
+                  {user?.name?.charAt(0) || "U"}
+                </span>
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white" title="Online" />
             </div>
             <div className={`flex-1 min-w-0 transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>
-              <p className="font-semibold text-[#1e3a5f] truncate text-lg">{user?.name || "User"}</p>
-              <p className="text-sm text-slate-500 truncate">{user?.email || "user@example.com"}</p>
+              <p className="font-semibold text-[#1e3a5f] truncate text-base">{user?.name || "User"}</p>
+              <p className="text-xs text-slate-400 truncate">{user?.email || "user@example.com"}</p>
             </div>
           </div>
           
-          {/* Profile Completion */}
-          <div className={`mt-4 bg-slate-50 rounded-xl p-3 transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-slate-500">Profile Completion</span>
-              <span className={`font-semibold ${profileCompletion >= 100 ? 'text-emerald-600' : profileCompletion >= 75 ? 'text-[#1e3a5f]' : 'text-orange-500'}`}>{profileCompletion}%</span>
+          {/* Profile Completion - Enhanced */}
+          <div className={`mt-4 bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-xl p-3.5 transition-opacity duration-300 border border-slate-100 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>
+            <div className="flex justify-between text-xs mb-2">
+              <span className="text-slate-500 font-medium">Profile Strength</span>
+              <span className={`font-bold ${profileCompletion >= 100 ? 'text-emerald-600' : profileCompletion >= 75 ? 'text-[#1e3a5f]' : 'text-orange-500'}`}>{profileCompletion}%</span>
             </div>
-            <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+            <div className="h-2 bg-slate-200/70 rounded-full overflow-hidden">
               <div 
-                className={`h-full rounded-full transition-all duration-500 ${profileCompletion >= 100 ? 'bg-gradient-to-r from-emerald-500 to-emerald-600' : 'bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a]'}`}
+                className={`h-full rounded-full transition-all duration-500 ${profileCompletion >= 100 ? 'bg-gradient-to-r from-emerald-400 to-emerald-500' : 'bg-gradient-to-r from-[#1e3a5f] to-[#3d7ab8]'}`}
                 style={{ width: `${profileCompletion}%` }}
               />
             </div>
+            {profileCompletion < 100 && (
+              <p className="text-[10px] text-slate-400 mt-2">Complete your profile to stand out</p>
+            )}
           </div>
         </div>
 
-        {/* Navigation */}
+        {/* Navigation - Enhanced */}
         <nav className={`flex-1 p-4 overflow-y-auto ${isDesktopSidebarCollapsed ? "lg:px-2" : ""}`}>
+          <p className={`text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-3 px-4 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>Main Menu</p>
           <ul className="space-y-1">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
@@ -1139,12 +1153,18 @@ export default function Dashboard() {
                       setActiveSection(item.id);
                       setIsMobileSidebarOpen(false);
                     }}
-                    className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-300 text-slate-600 hover:text-[#1e3a5f] hover:bg-slate-100 ${isDesktopSidebarCollapsed ? "lg:justify-center lg:px-2" : "hover:translate-x-1"} ${isActive ? "bg-[#1e3a5f]/10 text-[#1e3a5f]" : ""}`}
-                    style={{ transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)' }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isDesktopSidebarCollapsed ? "lg:justify-center lg:px-2" : ""} ${
+                      isActive 
+                        ? "bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] text-white shadow-lg shadow-[#1e3a5f]/20" 
+                        : "text-slate-600 hover:text-[#1e3a5f] hover:bg-slate-50"
+                    }`}
                     title={isDesktopSidebarCollapsed ? item.label : undefined}
                   >
-                    <Icon className="w-6 h-6 flex-shrink-0" />
-                    <span className={`font-medium text-base transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>{item.label}</span>
+                    <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? "text-white" : ""}`} />
+                    <span className={`font-medium text-sm transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>{item.label}</span>
+                    {isActive && !isDesktopSidebarCollapsed && (
+                      <ChevronRight className="w-4 h-4 ml-auto text-white/70" />
+                    )}
                   </button>
                 </li>
               );
@@ -1152,15 +1172,15 @@ export default function Dashboard() {
           </ul>
         </nav>
 
-        {/* Logout Button */}
-        <div className={`p-4 border-t border-slate-200 ${isDesktopSidebarCollapsed ? "lg:px-2" : ""}`}>
+        {/* Logout Button - Enhanced */}
+        <div className={`p-4 border-t border-slate-100 ${isDesktopSidebarCollapsed ? "lg:px-2" : ""}`}>
           <button
             onClick={() => logout()}
-            className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200 ${isDesktopSidebarCollapsed ? "lg:justify-center lg:px-2" : ""}`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all duration-200 group ${isDesktopSidebarCollapsed ? "lg:justify-center lg:px-2" : ""}`}
             title={isDesktopSidebarCollapsed ? "Sign Out" : undefined}
           >
-            <LogOut className="w-6 h-6 flex-shrink-0" />
-            <span className={`font-medium text-base transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>Sign Out</span>
+            <LogOut className="w-5 h-5 flex-shrink-0 group-hover:rotate-[-10deg] transition-transform" />
+            <span className={`font-medium text-sm transition-opacity duration-300 ${isDesktopSidebarCollapsed ? "lg:hidden" : ""}`}>Sign Out</span>
           </button>
         </div>
       </aside>
@@ -1171,41 +1191,44 @@ export default function Dashboard() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-[#1e3a5f]/5 to-transparent rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-20 left-10 w-72 h-72 bg-gradient-to-tr from-orange-500/5 to-transparent rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-1/2 right-1/4 w-64 h-64 bg-gradient-to-bl from-[#2d5a8a]/5 to-transparent rounded-full blur-3xl pointer-events-none" />
-        {/* Top Header */}
-        <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200/50 z-30 shadow-sm flex-shrink-0">
-          <div className="flex items-center justify-between px-4 lg:px-8 py-4">
+        {/* Top Header - Enhanced Professional Design */}
+        <header className="bg-white/95 backdrop-blur-xl border-b border-slate-100 z-30 flex-shrink-0" style={{ boxShadow: '0 1px 3px rgba(30, 58, 95, 0.04)' }}>
+          <div className="flex items-center justify-between px-4 lg:px-8 py-3.5">
             {/* Mobile Menu Button */}
             <button
-              className="lg:hidden p-2 hover:bg-slate-100 rounded-xl transition-colors"
+              className="lg:hidden p-2.5 hover:bg-slate-50 rounded-xl transition-colors border border-slate-100"
               onClick={() => setIsMobileSidebarOpen(true)}
             >
-              <Menu className="w-6 h-6 text-[#1e3a5f]" />
+              <Menu className="w-5 h-5 text-[#1e3a5f]" />
             </button>
 
-            {/* Search */}
-            <div className="hidden sm:flex flex-1 max-w-md mx-4">
-              <div className="relative w-full">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+            {/* Search - Enhanced */}
+            <div className="hidden sm:flex flex-1 max-w-lg mx-4">
+              <div className="relative w-full group">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-[#1e3a5f] transition-colors" />
                 <Input
-                  placeholder="Search jobs, applications..."
-                  className="pl-12 h-11 bg-slate-50 border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#1e3a5f]/20 focus:border-[#1e3a5f] transition-all"
+                  placeholder="Search jobs, applications, companies..."
+                  className="pl-11 h-10 bg-slate-50/80 border-slate-200/60 rounded-xl focus:bg-white focus:ring-2 focus:ring-[#1e3a5f]/10 focus:border-[#1e3a5f]/30 transition-all text-sm placeholder:text-slate-400"
                 />
+                <kbd className="absolute right-3 top-1/2 transform -translate-y-1/2 hidden lg:inline-flex h-5 items-center gap-1 rounded border border-slate-200 bg-slate-50 px-1.5 font-mono text-[10px] font-medium text-slate-400">
+                  ⌘K
+                </kbd>
               </div>
             </div>
 
-            {/* Right Actions */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            {/* Right Actions - Enhanced */}
+            <div className="flex items-center gap-2 sm:gap-2.5">
               {/* Notification Bell */}
-              <button className="relative p-2.5 hover:bg-slate-100 rounded-xl transition-colors">
-                <Bell className="w-5 h-5 text-slate-600" />
-                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-orange-500 rounded-full border-2 border-white" />
+              <button className="relative p-2.5 hover:bg-slate-50 rounded-xl transition-all group">
+                <Bell className="w-5 h-5 text-slate-500 group-hover:text-[#1e3a5f] transition-colors" />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
               </button>
               
               {/* Find Jobs Button */}
               <Link href="/jobs">
-                <Button className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] hover:from-[#2d5a8a] hover:to-[#1e3a5f] text-white shadow-lg rounded-xl h-11 px-3 sm:px-5">
+                <Button className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8a] hover:from-[#2d5a8a] hover:to-[#3d7ab8] text-white shadow-md shadow-[#1e3a5f]/15 rounded-xl h-10 px-3 sm:px-4 transition-all hover:shadow-lg hover:shadow-[#1e3a5f]/20">
                   <Search className="w-4 h-4 sm:mr-2" />
-                  <span className="hidden sm:inline font-medium">Find Jobs</span>
+                  <span className="hidden sm:inline font-medium text-sm">Find Jobs</span>
                 </Button>
               </Link>
               

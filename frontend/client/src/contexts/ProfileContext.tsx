@@ -45,6 +45,10 @@ interface ProfileContextType {
   
   // Preferences
   updatePreferences: (preferences: Partial<ProfileData['preferences']>) => void;
+  
+  // Profile Picture
+  updateProfilePicture: (imageData: string) => void;
+  removeProfilePicture: () => void;
 }
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -217,6 +221,21 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }));
   };
   
+  // Profile Picture
+  const updateProfilePicture = (imageData: string) => {
+    setProfile(prev => ({
+      ...prev,
+      profilePicture: imageData
+    }));
+  };
+  
+  const removeProfilePicture = () => {
+    setProfile(prev => ({
+      ...prev,
+      profilePicture: null
+    }));
+  };
+  
   return (
     <ProfileContext.Provider value={{
       profile,
@@ -243,6 +262,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       updateLanguage,
       deleteLanguage,
       updatePreferences,
+      updateProfilePicture,
+      removeProfilePicture,
     }}>
       {children}
     </ProfileContext.Provider>
